@@ -1,42 +1,35 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import {
-  View, Text, TextInput, FlatList, Pressable, ScrollView, Image,
+  View, Text, TextInput, FlatList, Pressable, ScrollView,
   StyleSheet, SafeAreaView, StatusBar,
 } from 'react-native';
-
 
 const CATEGORIAS = ['Maquillaje', 'Accesorios', 'Perfumes', 'Cuidados Piel'];
 
 const PRODUCTOS_INICIALES = [
-  
-  { id: 'PROD-001', nombre: 'Brillo labial rosado matte', categoria: 'Maquillaje', precio: 55000, precioAnterior: 61000, oferta: true, stock: 12, vendidos: 320, icono: '💄', descripcion: 'Brillo color rosado salmón con toque neutral para chicas.', valoraciones: [5, 4, 5] },
-  { id: 'PROD-002', nombre: 'Base líquida cobertura media', categoria: 'Maquillaje', precio: 55000, stock: 8, vendidos: 150, icono: '🧴', descripcion: 'Base líquida de acabado natural para todo el día.', valoraciones: [4, 4] },
-  { id: 'PROD-003', nombre: 'Set de brochas rosadas', categoria: 'Maquillaje', precio: 25000, stock: 15, vendidos: 90, icono: '🖌️', descripcion: 'Cinco brochas suaves con esponja para aplicar maquillaje.', valoraciones: [5] },
-  { id: 'PROD-004', nombre: 'Labial rojo intenso', categoria: 'Maquillaje', precio: 25000, stock: 20, vendidos: 210, icono: '💋', descripcion: 'Labial en barra color rojo de larga duración.', valoraciones: [] },
+  { id: 'PROD-001', nombre: 'Brillo labial rosado matte', categoria: 'Maquillaje', precio: 55000, precioAnterior: 61000, oferta: true, stock: 12, vendidos: 320, icono: '💄', descripcion: 'Brillo color rosado salmón con toque neutral para chicas.' },
+  { id: 'PROD-002', nombre: 'Base líquida cobertura media', categoria: 'Maquillaje', precio: 55000, stock: 8, vendidos: 150, icono: '🧴', descripcion: 'Base líquida de acabado natural para todo el día.' },
+  { id: 'PROD-003', nombre: 'Set de brochas rosadas', categoria: 'Maquillaje', precio: 25000, stock: 15, vendidos: 90, icono: '🖌️', descripcion: 'Cinco brochas suaves con esponja para aplicar maquillaje.' },
+  { id: 'PROD-004', nombre: 'Labial rojo intenso', categoria: 'Maquillaje', precio: 25000, stock: 20, vendidos: 210, icono: '💋', descripcion: 'Labial en barra color rojo de larga duración.' },
 
-  
-  { id: 'PROD-005', nombre: 'Espejo de mano floral', categoria: 'Accesorios', precio: 18000, stock: 0, vendidos: 40, icono: '🪞', descripcion: 'Espejo compacto con marco floral para llevar en el bolso.', valoraciones: [] },
-  { id: 'PROD-006', nombre: 'Cosmetiquera lila', categoria: 'Accesorios', precio: 32000, stock: 10, vendidos: 75, icono: '👜', descripcion: 'Cosmetiquera impermeable con tres compartimentos amplios.', valoraciones: [4, 5, 5] },
-  { id: 'PROD-007', nombre: 'Set de scrunchies', categoria: 'Accesorios', precio: 15000, stock: 30, vendidos: 130, icono: '🎀', descripcion: 'Seis coletas de tela suaves en tonos pastel.', valoraciones: [5, 4] },
-  { id: 'PROD-008', nombre: 'Diadema de flores', categoria: 'Accesorios', precio: 22000, stock: 14, vendidos: 60, icono: '🌼', descripcion: 'Diadema acolchada con flores para peinados y skincare.', valoraciones: [] },
+  { id: 'PROD-005', nombre: 'Espejo de mano floral', categoria: 'Accesorios', precio: 18000, stock: 0, vendidos: 40, icono: '🪞', descripcion: 'Espejo compacto con marco floral para llevar en el bolso.' },
+  { id: 'PROD-006', nombre: 'Cosmetiquera lila', categoria: 'Accesorios', precio: 32000, stock: 10, vendidos: 75, icono: '👜', descripcion: 'Cosmetiquera impermeable con tres compartimentos amplios.' },
+  { id: 'PROD-007', nombre: 'Set de scrunchies', categoria: 'Accesorios', precio: 15000, stock: 30, vendidos: 130, icono: '🎀', descripcion: 'Seis coletas de tela suaves en tonos pastel.' },
+  { id: 'PROD-008', nombre: 'Diadema de flores', categoria: 'Accesorios', precio: 22000, stock: 14, vendidos: 60, icono: '🌼', descripcion: 'Diadema acolchada con flores para peinados y skincare.' },
 
-  
-  { id: 'PROD-009', nombre: 'Perfume Cielo Rosa 100 ml', categoria: 'Perfumes', precio: 200000, stock: 5, vendidos: 60, icono: '🌸', descripcion: 'Fragancia floral y dulce de larga duración.', valoraciones: [5, 5] },
-  { id: 'PROD-010', nombre: 'Body splash vainilla', categoria: 'Perfumes', precio: 38000, precioAnterior: 42000, oferta: true, stock: 25, vendidos: 340, icono: '🍦', descripcion: 'Loción corporal perfumada con aroma suave a vainilla.', valoraciones: [4] },
-  { id: 'PROD-011', nombre: 'Perfume Brisa Fresca 50 ml', categoria: 'Perfumes', precio: 120000, stock: 7, vendidos: 30, icono: '🌿', descripcion: 'Aroma cítrico y fresco para usar todos los días.', valoraciones: [] },
-  { id: 'PROD-012', nombre: 'Mini perfume de viaje', categoria: 'Perfumes', precio: 45000, stock: 18, vendidos: 85, icono: '✨', descripcion: 'Perfume de 15 ml en frasco pequeño, ideal para el bolso.', valoraciones: [4, 5] },
+  { id: 'PROD-009', nombre: 'Perfume Cielo Rosa 100 ml', categoria: 'Perfumes', precio: 200000, stock: 5, vendidos: 60, icono: '🌸', descripcion: 'Fragancia floral y dulce de larga duración.' },
+  { id: 'PROD-010', nombre: 'Body splash vainilla', categoria: 'Perfumes', precio: 38000, precioAnterior: 42000, oferta: true, stock: 25, vendidos: 340, icono: '🍦', descripcion: 'Loción corporal perfumada con aroma suave a vainilla.' },
+  { id: 'PROD-011', nombre: 'Perfume Brisa Fresca 50 ml', categoria: 'Perfumes', precio: 120000, stock: 7, vendidos: 30, icono: '🌿', descripcion: 'Aroma cítrico y fresco para usar todos los días.' },
+  { id: 'PROD-012', nombre: 'Mini perfume de viaje', categoria: 'Perfumes', precio: 45000, stock: 18, vendidos: 85, icono: '✨', descripcion: 'Perfume de 15 ml en frasco pequeño, ideal para el bolso.' },
 
-  
-  { id: 'PROD-013', nombre: 'Crema hidratante facial', categoria: 'Cuidados Piel', precio: 45000, stock: 14, vendidos: 180, icono: '🧼', descripcion: 'Crema ligera con ácido hialurónico para todo tipo de piel.', valoraciones: [5, 4] },
-  { id: 'PROD-014', nombre: 'Mascarilla de arcilla', categoria: 'Cuidados Piel', precio: 28000, stock: 3, vendidos: 95, icono: '🫧', descripcion: 'Mascarilla purificante para limpiar poros en diez minutos.', valoraciones: [4] },
-  { id: 'PROD-015', nombre: 'Desmaquillante bifásico', categoria: 'Cuidados Piel', precio: 35000, stock: 9, vendidos: 120, icono: '💧', descripcion: 'Retira maquillaje resistente al agua sin irritar la piel.', valoraciones: [] },
-  { id: 'PROD-016', nombre: 'Protector solar facial', categoria: 'Cuidados Piel', precio: 52000, stock: 11, vendidos: 260, icono: '☀️', descripcion: 'Protector solar facial SPF 50 de textura ligera.', valoraciones: [5, 5, 4] },
+  { id: 'PROD-013', nombre: 'Crema hidratante facial', categoria: 'Cuidados Piel', precio: 45000, stock: 14, vendidos: 180, icono: '🧼', descripcion: 'Crema ligera con ácido hialurónico para todo tipo de piel.' },
+  { id: 'PROD-014', nombre: 'Mascarilla de arcilla', categoria: 'Cuidados Piel', precio: 28000, stock: 3, vendidos: 95, icono: '🫧', descripcion: 'Mascarilla purificante para limpiar poros en diez minutos.' },
+  { id: 'PROD-015', nombre: 'Desmaquillante bifásico', categoria: 'Cuidados Piel', precio: 35000, stock: 9, vendidos: 120, icono: '💧', descripcion: 'Retira maquillaje resistente al agua sin irritar la piel.' },
+  { id: 'PROD-016', nombre: 'Protector solar facial', categoria: 'Cuidados Piel', precio: 52000, stock: 11, vendidos: 260, icono: '☀️', descripcion: 'Protector solar facial SPF 50 de textura ligera.' },
 ];
 
-const CUPON_VALIDO = 'BIENVENIDO10';
 const ENVIO = 8000;
 const ENVIO_GRATIS_DESDE = 150000;
-
 
 const C = {
   fondo: '#F1E8F6', header: '#B79BCB', claro: '#E6DAEE', morado: '#8B64A3',
@@ -44,9 +37,23 @@ const C = {
   verde: '#5CCB5F', gris: '#8A7A92',
 };
 
-const COP = (n) => '$' + String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-const promedio = (v) => (v.length ? (v.reduce((a, b) => a + b, 0) / v.length).toFixed(1) : null);
+const COP = (n) => '$' + String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' COP';
 
+
+const Vacio = ({ msg, btn, onPress }) => (
+  <View style={s.vacio}>
+    <Text style={s.vacioTxt}>{msg}</Text>
+    <Pressable style={s.btn} onPress={onPress}><Text style={s.btnTxt}>{btn}</Text></Pressable>
+  </View>
+);
+
+const Resumen = ({ subtotal, envio, total }) => (
+  <View style={s.resumenCaja}>
+    <Text style={s.resumenFilaTxt}>Subtotal: {COP(subtotal)}</Text>
+    <Text style={s.resumenFilaTxt}>Envío: {envio === 0 ? 'Gratis' : COP(envio)}</Text>
+    <Text style={s.resumenTotal}>Total: {COP(total)}</Text>
+  </View>
+);
 
 export default function App() {
   const [productos, setProductos] = useState(PRODUCTOS_INICIALES);
@@ -67,21 +74,17 @@ export default function App() {
     setTimeout(() => setAviso(''), 2200);
   };
 
-  
-  const visibles = useMemo(() => {
-    let lista = productos.filter((p) =>
-      p.nombre.toLowerCase().includes(busqueda.trim().toLowerCase()) &&
-      (categoria === 'Todas' || p.categoria === categoria));
-    if (orden === 'asc') lista = [...lista].sort((a, b) => a.precio - b.precio);
-    if (orden === 'desc') lista = [...lista].sort((a, b) => b.precio - a.precio);
-    return lista;
-  }, [productos, busqueda, categoria, orden]);
 
-  
+  const visibles = productos
+    .filter((p) => p.nombre.toLowerCase().includes(busqueda.trim().toLowerCase()) &&
+      (categoria === 'Todas' || p.categoria === categoria))
+    .sort((a, b) => (orden === 'asc' ? a.precio - b.precio : orden === 'desc' ? b.precio - a.precio : 0));
+
+
   const lineas = carrito.map((l) => ({ ...l, p: productos.find((x) => x.id === l.id) }));
   const cantTotal = carrito.reduce((a, l) => a + l.cant, 0);
   const subtotal = lineas.reduce((a, l) => a + l.cant * l.p.precio, 0);
-  const envio = subtotal === 0 ? 0 : subtotal >= ENVIO_GRATIS_DESDE ? 0 : ENVIO;
+  const envio = subtotal === 0 || subtotal >= ENVIO_GRATIS_DESDE ? 0 : ENVIO;
   const total = subtotal + envio;
 
   const agregar = (id) => {
@@ -102,10 +105,9 @@ export default function App() {
 
   const cambiarCant = (id, delta) => {
     const l = carrito.find((x) => x.id === id);
-    const p = productos.find((x) => x.id === id);
     const nueva = l.cant + delta;
     if (nueva < 1) return quitar(id);
-    if (nueva > p.stock) return avisar('Stock insuficiente');
+    if (nueva > productos.find((x) => x.id === id).stock) return avisar('Stock insuficiente');
     setCarrito(carrito.map((x) => (x.id === id ? { ...x, cant: nueva } : x)));
   };
 
@@ -138,14 +140,14 @@ export default function App() {
     setPedidos([pedido, ...pedidos]);
     setCarrito([]);
     setVista('historial');
-    avisar('Pedido ' + pedido.codigo + 'realizado');
+    avisar('Pedido ' + pedido.codigo + ' confirmado (simulación, sin cobro real)');
   };
 
   // ESTRUCTURA PAGINA DISEÑO
   const encabezado = (conBuscador) => (
     <View style={s.header}>
       <View style={s.headerFila}>
-        <Image source={require('./assets/logo.png')} style={s.logo} />
+        <View style={s.logo}><Text style={s.logoTxt}>WB</Text></View>
         {conBuscador ? (
           <View style={s.buscador}>
             <Text>🔍</Text>
@@ -163,13 +165,6 @@ export default function App() {
         <View style={s.usuario}><Text style={{ fontSize: 16 }}>👤</Text></View>
       </View>
       {conBuscador && <Text style={s.bienvenido}>¡Bienvenido Usuario!</Text>}
-    </View>
-  );
-
-  const vacio = (msg, btnTxt, accion) => (
-    <View style={s.vacio}>
-      <Text style={s.vacioTxt}>{msg}</Text>
-      <Pressable style={s.btn} onPress={accion}><Text style={s.btnTxt}>{btnTxt}</Text></Pressable>
     </View>
   );
 
@@ -191,7 +186,20 @@ export default function App() {
     </Pressable>
   );
 
-  
+
+  const grilla = (data, vacioNode) => (
+    <FlatList
+      data={data}
+      numColumns={2}
+      keyExtractor={(p) => p.id}
+      renderItem={({ item }) => tarjeta(item)}
+      columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 14 }}
+      contentContainerStyle={{ paddingBottom: 90 }}
+      ListEmptyComponent={vacioNode}
+    />
+  );
+
+
   const vistaCatalogo = () => (
     <View style={{ flex: 1 }}>
       {encabezado(true)}
@@ -204,23 +212,21 @@ export default function App() {
       </View>
       <View style={s.tituloFila}>
         <Text style={s.titulo}>{categoria}</Text>
-      <br></br><br></br>
+        <View style={s.ordenFila}>
+          {[['asc', 'Menor a mayor'], ['desc', 'Mayor a menor']].map(([k, t]) => (
+            <Pressable key={k} onPress={() => setOrden(orden === k ? 'ninguno' : k)} style={[s.chip, orden === k && s.chipActivo]}>
+              <Text style={[s.chipTxt, orden === k && { color: C.blanco }]}>{t}</Text>
+            </Pressable>
+          ))}
+        </View>
       </View>
-      <FlatList
-        data={visibles}
-        numColumns={2}
-        keyExtractor={(p) => p.id}
-        renderItem={({ item }) => tarjeta(item)}
-        columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 14 }}
-        contentContainerStyle={{ paddingBottom: 90 }}
-        ListEmptyComponent={vacio('No encontramos productos', 'Ver todos', () => { setBusqueda(''); setCategoria('Todas'); })}
-      />
+      {grilla(visibles,
+        <Vacio msg="No encontramos productos" btn="Ver todos" onPress={() => { setBusqueda(''); setCategoria('Todas'); }} />)}
     </View>
   );
 
   const vistaDetalle = () => {
     const p = productos.find((x) => x.id === selId);
-    const prom = promedio(p.valoraciones);
     return (
       <View style={{ flex: 1, backgroundColor: C.blanco }}>
         <View style={s.detalleBarra}>
@@ -273,7 +279,7 @@ export default function App() {
         </View>
       </View>
       <ScrollView contentContainerStyle={{ padding: 14, paddingBottom: 100 }}>
-        {lineas.length === 0 && vacio('Tu carrito está vacío', 'Ir al catálogo', () => setVista('catalogo'))}
+        {lineas.length === 0 && <Vacio msg="Tu carrito está vacío" btn="Ir al catálogo" onPress={() => setVista('catalogo')} />}
         {lineas.map((l) => (
           <View key={l.id} style={s.lineaCarrito}>
             <View style={s.lineaFila}>
@@ -298,13 +304,7 @@ export default function App() {
             </View>
           </View>
         ))}
-        {lineas.length > 0 && (
-          <View style={s.resumenCaja}>
-            <Text style={s.resumenFilaTxt}>Subtotal: {COP(subtotal)}</Text>
-            <Text style={s.resumenFilaTxt}>Envío: {envio === 0 ? 'Gratis' : COP(envio)}</Text>
-            <Text style={s.resumenTotal}>Total: {COP(total)}</Text>
-          </View>
-        )}
+        {lineas.length > 0 && <Resumen subtotal={subtotal} envio={envio} total={total} />}
       </ScrollView>
     </View>
   );
@@ -321,11 +321,7 @@ export default function App() {
               onChangeText={(t) => setDatos({ ...datos, [k]: t })} />
           </View>
         ))}
-        <View style={s.resumenCaja}>
-          <Text style={s.resumenFilaTxt}>Subtotal: {COP(subtotal)}</Text>
-          <Text style={s.resumenFilaTxt}>Envío: {envio === 0 ? 'Gratis' : COP(envio)}</Text>
-          <Text style={s.resumenTotal}>Total: {COP(total)}</Text>
-        </View>
+        <Resumen subtotal={subtotal} envio={envio} total={total} />
         <Pressable style={s.btnGrandeInline} onPress={confirmar}>
           <Text style={s.btnGrandeTxt}>Confirmar compra</Text>
         </Pressable>
@@ -338,15 +334,8 @@ export default function App() {
     <View style={{ flex: 1 }}>
       {encabezado(false)}
       <Text style={[s.titulo, { padding: 16 }]}>Favoritos</Text>
-      <FlatList
-        data={productos.filter((p) => favoritos.includes(p.id))}
-        numColumns={2}
-        keyExtractor={(p) => p.id}
-        renderItem={({ item }) => tarjeta(item)}
-        columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 14 }}
-        contentContainerStyle={{ paddingBottom: 90 }}
-        ListEmptyComponent={vacio('Aún no tienes favoritos', 'Volver al catálogo', () => setVista('catalogo'))}
-      />
+      {grilla(productos.filter((p) => favoritos.includes(p.id)),
+        <Vacio msg="Aún no tienes favoritos" btn="Volver al catálogo" onPress={() => setVista('catalogo')} />)}
     </View>
   );
 
@@ -358,7 +347,7 @@ export default function App() {
         data={pedidos}
         keyExtractor={(p) => p.codigo}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 90 }}
-        ListEmptyComponent={vacio('No hay pedidos registrados', 'Ir al catálogo', () => setVista('catalogo'))}
+        ListEmptyComponent={<Vacio msg="No hay pedidos registrados" btn="Ir al catálogo" onPress={() => setVista('catalogo')} />}
         renderItem={({ item }) => (
           <View style={s.pedidoCaja}>
             <Text style={s.lineaNombre}>{item.codigo}</Text>
@@ -375,20 +364,17 @@ export default function App() {
   );
 
 
-  const activa = { catalogo: 'catalogo', detalle: origen, carrito: 'carrito', checkout: 'carrito', favoritos: 'favoritos', historial: 'historial' }[vista];
+  const vistas = {
+    catalogo: vistaCatalogo, detalle: vistaDetalle, carrito: vistaCarrito,
+    checkout: vistaCheckout, favoritos: vistaFavoritos, historial: vistaHistorial,
+  };
+  const activa = { detalle: origen, checkout: 'carrito' }[vista] || vista;
   const nav = [['catalogo', '🏠', 'Catálogo'], ['favoritos', '💜', 'Favoritos'], ['carrito', '🛒', 'Carrito'], ['historial', '🧾', 'Historial']];
 
   return (
     <SafeAreaView style={s.raiz}>
       <StatusBar barStyle="dark-content" backgroundColor={C.header} />
-      <View style={{ flex: 1 }}>
-        {vista === 'catalogo' && vistaCatalogo()}
-        {vista === 'detalle' && vistaDetalle()}
-        {vista === 'carrito' && vistaCarrito()}
-        {vista === 'checkout' && vistaCheckout()}
-        {vista === 'favoritos' && vistaFavoritos()}
-        {vista === 'historial' && vistaHistorial()}
-      </View>
+      <View style={{ flex: 1 }}>{vistas[vista]()}</View>
       {aviso !== '' && <View style={s.toast}><Text style={s.toastTxt}>{aviso}</Text></View>}
       <View style={s.nav}>
         {nav.map(([k, ic, t]) => (
@@ -402,15 +388,14 @@ export default function App() {
   );
 }
 
-
 //estilos pagina
 const s = StyleSheet.create({
-  raiz: { flex: 1, backgroundColor: 
-  C.fondo, paddingTop: StatusBar.currentHeight || 0 },
+  raiz: { flex: 1, backgroundColor: C.fondo, paddingTop: StatusBar.currentHeight || 0 },
   header: { backgroundColor: C.header, paddingHorizontal: 12, paddingTop: 10, paddingBottom: 8 },
   headerFila: { flexDirection: 'row', alignItems: 'center' },
   headerTitulo: { flex: 1, color: C.blanco, fontSize: 20, fontWeight: 'bold', marginLeft: 10 },
-  logo: { width: 70, height: 70, resizeMode: 'contain' },
+  logo: { width: 44, height: 44, borderRadius: 22, backgroundColor: C.claro, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: C.ciruela },
+  logoTxt: { color: C.ciruela, fontWeight: 'bold', fontSize: 16 },
   buscador: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: C.blanco, borderRadius: 14, marginHorizontal: 10, paddingHorizontal: 8, height: 34 },
   buscadorInput: { flex: 1, paddingVertical: 0, paddingHorizontal: 6, fontSize: 13 },
   iconoBtn: { marginRight: 8 },
@@ -451,7 +436,6 @@ const s = StyleSheet.create({
   masVendidoTxt: { fontSize: 10, color: '#000' },
   corazon: { width: 38, height: 38, borderRadius: 19, backgroundColor: C.claro, alignItems: 'center', justifyContent: 'center' },
   detalleNombre: { color: C.morado, fontSize: 20, fontWeight: 'bold', marginTop: 6 },
-  detalleSub: { color: C.gris, fontSize: 13, marginVertical: 3 },
   detalleDesc: { color: C.ciruela, fontSize: 13 },
   detalleCat: { color: C.gris, fontSize: 12, marginTop: 4 },
   precioFila: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
@@ -459,7 +443,6 @@ const s = StyleSheet.create({
   ofertaCaja: { borderWidth: 1, borderColor: '#000', paddingHorizontal: 8, marginLeft: 12 },
   ofertaCajaTxt: { fontSize: 12 },
   tachado: { color: C.gris, textDecorationLine: 'line-through', fontSize: 12 },
-  tachadoClaro: { color: C.claro, textDecorationLine: 'line-through', fontSize: 12 },
   stockDetalle: { fontWeight: 'bold', marginVertical: 6 },
   medios: { color: C.ciruela, fontSize: 13, marginVertical: 6 },
   mediosFila: { flexDirection: 'row', justifyContent: 'space-between' },
@@ -474,9 +457,6 @@ const s = StyleSheet.create({
   totalGrande: { color: C.blanco, fontSize: 28, fontWeight: 'bold' },
   btnContinuar: { backgroundColor: C.morado, borderRadius: 16, paddingHorizontal: 18, paddingVertical: 8 },
   btnContinuarTxt: { color: C.blanco, fontWeight: 'bold' },
-  cuponFila: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 6 },
-  cuponInput: { color: C.blanco, fontSize: 12, borderBottomWidth: 1, borderBottomColor: C.claro, minWidth: 140, paddingVertical: 0 },
-  cuponBtn: { color: C.blanco, fontWeight: 'bold', marginLeft: 10, fontSize: 12 },
   lineaCarrito: { backgroundColor: C.blanco, borderRadius: 18, padding: 12, marginBottom: 12, elevation: 4 },
   lineaFila: { flexDirection: 'row', alignItems: 'center' },
   lineaImg: { width: 64, height: 64, borderRadius: 10, backgroundColor: C.claro, alignItems: 'center', justifyContent: 'center' },
