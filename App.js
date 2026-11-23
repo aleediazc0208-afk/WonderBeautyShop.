@@ -1,71 +1,102 @@
-// VERSION 2.0 WONDER BEAUTY SHOP + FILTROS COMBINADOS, COMPARADOR Y VARIANTES
-
-// IMPORTACIONES
+// VERSION 2.0 WONDER BEAUTY SHOP
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, FlatList, Pressable, ScrollView, StyleSheet, SafeAreaView, StatusBar, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts, Fredoka_700Bold } from '@expo-google-fonts/fredoka';
 
 
-                            // JS DE LA PAGINA //
-// DATOS INICIALES
+//CONSTANTES DE LA APP
+
+// CATEGORÍAS de la tienda
 const CATEGORIAS = ['Maquillaje', 'Accesorios', 'Perfumes', 'Cuidados Piel'];
 
+// PRODUCTOS WONDER BEAUTY (16 productos)
 const PRODUCTOS_INICIALES = [
-  { id: 'PROD-001', nombre: 'Brillo labial rosado matte', categoria: 'Maquillaje', precio: 55000, precioAnterior: 61000, oferta: true, stock: 12, vendidos: 320, icono: '💄', variantes: ['Rosado salmón', 'Nude', 'Coral'], descripcion: 'Brillo color rosado salmón con toque neutral para chicas.' },
-  { id: 'PROD-002', nombre: 'Base líquida cobertura media', categoria: 'Maquillaje', precio: 55000, stock: 8, vendidos: 150, icono: '🧴', descripcion: 'Base líquida de acabado natural para todo el día.' },
-  { id: 'PROD-003', nombre: 'Set de brochas rosadas', categoria: 'Maquillaje', precio: 25000, stock: 15, vendidos: 90, icono: '🖌️', descripcion: 'Cinco brochas suaves con esponja para aplicar maquillaje.' },
-  { id: 'PROD-004', nombre: 'Labial rojo intenso', categoria: 'Maquillaje', precio: 25000, stock: 20, vendidos: 210, icono: '💋', variantes: ['Rojo intenso', 'Vino', 'Cereza'], descripcion: 'Labial en barra color rojo de larga duración.' },
+  { id: 'PROD-001', nombre: 'Brillo labial rosado matte ESIKA', marca: 'Wonder Glam', categoria: 'Maquillaje', precio: 55000, precioAnterior: 61000, oferta: true, stock: 12, vendidos: 320, icono: '💄', variantes: ['Rosado salmón', 'Nude', 'Coral'], descripcion: 'Brillo color rosado salmón con toque neutral para chicas.' },
+  { id: 'PROD-002', nombre: 'Base líquida cobertura media', marca: 'Wonder Glam', categoria: 'Maquillaje', precio: 55000, stock: 8, vendidos: 150, icono: '🧴', descripcion: 'Base líquida de acabado natural para todo el día.' },
+  { id: 'PROD-003', nombre: 'Set de brochas rosadas', marca: 'Rose Tools', categoria: 'Maquillaje', precio: 25000, stock: 15, vendidos: 90, icono: '🖌️', descripcion: 'Cinco brochas suaves con esponja para aplicar maquillaje.' },
+  { id: 'PROD-004', nombre: 'Labial rojo intenso', marca: 'Wonder Glam', categoria: 'Maquillaje', precio: 25000, stock: 20, vendidos: 210, icono: '💋', variantes: ['Rojo intenso', 'Vino', 'Cereza'], descripcion: 'Labial en barra color rojo de larga duración.' },
 
-  { id: 'PROD-005', nombre: 'Espejo de mano floral', categoria: 'Accesorios', precio: 18000, stock: 0, vendidos: 40, icono: '🎀', descripcion: 'Espejo compacto con marco floral para llevar en el bolso.' },
-  { id: 'PROD-006', nombre: 'Cosmetiquera lila', categoria: 'Accesorios', precio: 32000, stock: 10, vendidos: 75, icono: '👜', descripcion: 'Cosmetiquera impermeable con tres compartimentos amplios.' },
-  { id: 'PROD-007', nombre: 'Set de scrunchies', categoria: 'Accesorios', precio: 15000, stock: 30, vendidos: 130, icono: '🎀', variantes: ['Pastel', 'Neón'], descripcion: 'Seis coletas de tela suaves en tonos pastel.' },
-  { id: 'PROD-008', nombre: 'Diadema de flores', categoria: 'Accesorios', precio: 22000, stock: 14, vendidos: 60, icono: '🌼', descripcion: 'Diadema acolchada con flores para peinados y skincare.' },
+  { id: 'PROD-005', nombre: 'Espejo de mano floral', marca: 'Rose Tools', categoria: 'Accesorios', precio: 18000, stock: 0, vendidos: 40, icono: '🎀', descripcion: 'Espejo compacto con marco floral para llevar en el bolso.' },
+  { id: 'PROD-006', nombre: 'Cosmetiquera lila', marca: 'Lila Style', categoria: 'Accesorios', precio: 32000, stock: 10, vendidos: 75, icono: '👜', descripcion: 'Cosmetiquera impermeable con tres compartimentos amplios.' },
+  { id: 'PROD-007', nombre: 'Set de scrunchies', marca: 'Lila Style', categoria: 'Accesorios', precio: 15000, stock: 30, vendidos: 130, icono: '🎀', variantes: ['Pastel', 'Neón'], descripcion: 'Seis coletas de tela suaves en tonos pastel.' },
+  { id: 'PROD-008', nombre: 'Diadema de flores', marca: 'Lila Style', categoria: 'Accesorios', precio: 22000, stock: 14, vendidos: 60, icono: '🌼', descripcion: 'Diadema acolchada con flores para peinados y skincare.' },
 
-  { id: 'PROD-009', nombre: 'Perfume Cielo Rosa 100 ml', categoria: 'Perfumes', precio: 200000, stock: 5, vendidos: 60, icono: '🌸', descripcion: 'Fragancia floral y dulce de larga duración.' },
-  { id: 'PROD-010', nombre: 'Body splash vainilla', categoria: 'Perfumes', precio: 38000, precioAnterior: 42000, oferta: true, stock: 25, vendidos: 340, icono: '🍦', descripcion: 'Loción corporal perfumada con aroma suave a vainilla.' },
-  { id: 'PROD-011', nombre: 'Perfume Brisa Fresca 50 ml', categoria: 'Perfumes', precio: 120000, stock: 7, vendidos: 30, icono: '🌿', descripcion: 'Aroma cítrico y fresco para usar todos los días.' },
-  { id: 'PROD-012', nombre: 'Mini perfume de viaje', categoria: 'Perfumes', precio: 45000, stock: 18, vendidos: 85, icono: '✨', variantes: ['Vainilla', 'Floral', 'Cítrico'], descripcion: 'Perfume de 15 ml en frasco pequeño, ideal para el bolso.' },
+  { id: 'PROD-009', nombre: 'Perfume Cielo Rosa 100 ml', marca: 'Aura', categoria: 'Perfumes', precio: 200000, stock: 5, vendidos: 60, icono: '🌸', descripcion: 'Fragancia floral y dulce de larga duración.' },
+  { id: 'PROD-010', nombre: 'Body splash vainilla', marca: 'Aura', categoria: 'Perfumes', precio: 38000, precioAnterior: 42000, oferta: true, stock: 25, vendidos: 340, icono: '🍦', descripcion: 'Loción corporal perfumada con aroma suave a vainilla.' },
+  { id: 'PROD-011', nombre: 'Perfume Brisa Fresca 50 ml', marca: 'Aura', categoria: 'Perfumes', precio: 120000, stock: 7, vendidos: 30, icono: '🌿', descripcion: 'Aroma cítrico y fresco para usar todos los días.' },
+  { id: 'PROD-012', nombre: 'Mini perfume de viaje', marca: 'Aura', categoria: 'Perfumes', precio: 45000, stock: 18, vendidos: 85, icono: '✨', variantes: ['Vainilla', 'Floral', 'Cítrico'], descripcion: 'Perfume de 15 ml en frasco pequeño, ideal para el bolso.' },
 
-  { id: 'PROD-013', nombre: 'Crema hidratante facial', categoria: 'Cuidados Piel', precio: 45000, stock: 14, vendidos: 180, icono: '🧼', descripcion: 'Crema ligera con ácido hialurónico para todo tipo de piel.' },
-  { id: 'PROD-014', nombre: 'Mascarilla de arcilla', categoria: 'Cuidados Piel', precio: 28000, stock: 3, vendidos: 95, icono: '🧴', descripcion: 'Mascarilla purificante para limpiar poros en diez minutos.' },
-  { id: 'PROD-015', nombre: 'Desmaquillante bifásico', categoria: 'Cuidados Piel', precio: 35000, stock: 9, vendidos: 120, icono: '💧', descripcion: 'Retira maquillaje resistente al agua sin irritar la piel.' },
-  { id: 'PROD-016', nombre: 'Protector solar facial', categoria: 'Cuidados Piel', precio: 52000, stock: 11, vendidos: 260, icono: '☀️', variantes: ['Con color', 'Sin color'], descripcion: 'Protector solar facial SPF 50 de textura ligera.' },
+  { id: 'PROD-013', nombre: 'Crema hidratante facial', marca: 'Pure Skin', categoria: 'Cuidados Piel', precio: 45000, stock: 14, vendidos: 180, icono: '🧼', descripcion: 'Crema ligera con ácido hialurónico para todo tipo de piel.' },
+  { id: 'PROD-014', nombre: 'Mascarilla de arcilla', marca: 'Pure Skin', categoria: 'Cuidados Piel', precio: 28000, stock: 3, vendidos: 95, icono: '🧴', descripcion: 'Mascarilla purificante para limpiar poros en diez minutos.' },
+  { id: 'PROD-015', nombre: 'Desmaquillante bifásico', marca: 'Pure Skin', categoria: 'Cuidados Piel', precio: 35000, stock: 9, vendidos: 120, icono: '💧', descripcion: 'Retira maquillaje resistente al agua sin irritar la piel.' },
+  { id: 'PROD-016', nombre: 'Protector solar facial', marca: 'Pure Skin', categoria: 'Cuidados Piel', precio: 52000, stock: 11, vendidos: 260, icono: '☀️', variantes: ['Con color', 'Sin color'], descripcion: 'Protector solar facial SPF 50 de textura ligera.' },
 ];
 
-// CONSTANTES
+// MARCAS (lista sin repetir, para el filtro del catálogo)
+const MARCAS = [...new Set(PRODUCTOS_INICIALES.map((p) => p.marca))];
+
+// PREGUNTAS INICIALES DE EJEMPLO (HU24)
+const PREGUNTAS_INICIALES = [
+  { id: 'Q-001', productoId: 'PROD-001', texto: '¿Este brillo sirve para piel clara?', fecha: '20/11/2026, 10:30 a. m.', estado: 'Respondida', respuesta: 'Respuesta automática de demostración: sí, el tono rosado salmón se ve bien en piel clara.' },
+];
+
+// ENVÍO: 
 const ENVIO = 8000;
 const ENVIO_GRATIS_DESDE = 150000;
-const CLAVE_GUARDADO = 'wonderbeauty_datos';
+
+// CUPÓN
 const CUPON_CODIGO = 'BIENVENIDO10';
 const CUPON_PORCENTAJE = 0.1;
 
-// COLORES
+// CLAVE OARA GUARDAR CARRITO Y FAVS
+const CLAVE_GUARDADO = 'wonderbeauty_datos';
+
+// COLORES 
 const C = {
   fondo: '#F1E8F6', header: '#B79BCB', claro: '#E6DAEE', morado: '#8B64A3',
   ciruela: '#855869', texto: '#6A3F7E', blanco: '#FFFFFF', rojo: '#E0524D',
   verde: '#5CCB5F', gris: '#8A7A92',
 };
 
-// FORMATO DE PRECIO EN PESOS
+// VALORES VACÍOS: formulario de producto (responsable)
+const FORM_VACIO = { nombre: '', categoria: CATEGORIAS[0], precio: '', stock: '', descripcion: '', icono: '' };
+
+// VALORES VACÍOS: datos del comprador (checkout)
+const DATOS_VACIOS = { nombre: '', telefono: '', municipio: '', direccion: '' };
+
+// NOMBRES de los campos del comprador 
+const NOMBRES_CAMPOS = { nombre: 'Nombre completo', telefono: 'Teléfono', municipio: 'Municipio', direccion: 'Dirección' };
+
+// VALORES VACÍOS: filtros del catálogo
+const FILTROS_VACIOS = { min: '', max: '', marca: '', oferta: false, disp: false, valMin: 0 };
+
+
+
+//  FUNCIONES AUXILIARES 
+
+
+// FORMATO
 const COP = (n) => '$' + String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' COP';
 
-// VALORES VACIOS PARA FORMULARIOS
-const FORM_VACIO = { nombre: '', categoria: CATEGORIAS[0], precio: '', stock: '', descripcion: '', icono: '' };
-const DATOS_VACIOS = { nombre: '', telefono: '', municipio: '', direccion: '' };
-const NOMBRES_CAMPOS = { nombre: 'Nombre completo', telefono: 'Teléfono', municipio: 'Municipio', direccion: 'Dirección' };
-const FILTROS_VACIOS = { min: '', max: '', oferta: false, disp: false, valMin: 0 };
-
-// FUNCIONES AUXILIARES (validar números, promedio y estrellas de reseñas)
+// VALIDAR que un texto sea un número entero mayor o igual a un mínimo
 const esEntero = (texto, min) => texto.trim() !== '' && Number.isInteger(Number(texto)) && Number(texto) >= min;
 
+// PROMEDIO (reseñas)
 const promedioDe = (lista) => (lista.length === 0 ? 0 : lista.reduce((a, n) => a + n, 0) / lista.length);
+
+// ESTRELLAS
 const estrellas = (n) => '★'.repeat(n) + '☆'.repeat(5 - n);
 
-// clave única de una línea del carrito (producto + opción)
+// CLAVE 
 const claveLinea = (l) => l.id + '|' + l.variante;
 
-// COMPONENTE: MENSAJE DE VACIO
+
+
+//  COMPONENTES PEQUEÑOS 
+
+
+// mensaje de "vacío" con botón
 const Vacio = ({ msg, btn, onPress }) => (
   <View style={s.vacio}>
     <Text style={s.vacioTxt}>{msg}</Text>
@@ -73,7 +104,7 @@ const Vacio = ({ msg, btn, onPress }) => (
   </View>
 );
 
-// COMPONENTE: RESUMEN DE TOTALES
+// COMPONENTE: resumen de totales 
 const Resumen = ({ subtotal, descuento = 0, envio, total }) => (
   <View style={s.resumenCaja}>
     <Text style={s.resumenFilaTxt}>Subtotal: {COP(subtotal)}</Text>
@@ -83,54 +114,13 @@ const Resumen = ({ subtotal, descuento = 0, envio, total }) => (
   </View>
 );
 
-// APP PRINCIPAL
+ // APP PRINCPIAL
 export default function App() {
-  const [fontsLoaded] = useFonts({ Fredoka_700Bold });
+const [fontsLoaded] = useFonts({ Fredoka_700Bold });
 
-  // ESTADOS: catálogo, carrito y pedidos
-  const [productos, setProductos] = useState(PRODUCTOS_INICIALES);
-  const [vista, setVista] = useState('catalogo');
-  const [origen, setOrigen] = useState('catalogo');
-  const [selId, setSelId] = useState(null);
-  const [busqueda, setBusqueda] = useState('');
-  const [categoria, setCategoria] = useState('Maquillaje');
-  const [orden, setOrden] = useState('ninguno');
-  const [favoritos, setFavoritos] = useState([]);
-  const [carrito, setCarrito] = useState([]);
-  const [pedidos, setPedidos] = useState([]);
-  const [datos, setDatos] = useState(DATOS_VACIOS);
-  const [aviso, setAviso] = useState('');
 
-  // ESTADOS: filtros, comparador y variantes
-  const [filtros, setFiltros] = useState(FILTROS_VACIOS);
-  const [verFiltros, setVerFiltros] = useState(false);
-  const [comparar, setComparar] = useState([]);
-  const [varianteSel, setVarianteSel] = useState('');
 
-  // ESTADOS: cupón
-  const [cupon, setCupon] = useState('');
-  const [cuponAplicado, setCuponAplicado] = useState(false);
-  const [errorCupon, setErrorCupon] = useState('');
-
-  // ESTADOS: reseñas
-  const [resenas, setResenas] = useState({});
-  const [valorResena, setValorResena] = useState('');
-  const [errorResena, setErrorResena] = useState('');
-
-  // ESTADO: datos guardados ya cargados
-  const [cargado, setCargado] = useState(false);
-
-  // ESTADOS: perfil (comprador o responsable)
-  const [perfil, setPerfil] = useState('comprador');
-  const [menuPerfil, setMenuPerfil] = useState(false);
-  const esResp = perfil === 'responsable';
-
-  // ESTADOS: formulario de producto
-  const [form, setForm] = useState(FORM_VACIO);
-  const [editId, setEditId] = useState(null);
-  const [errorForm, setErrorForm] = useState('');
-
-  // ESTADOS: login con correo y contraseña
+  // ESTADOS: sesión y login
   const [usuario, setUsuario] = useState(null);
   const [correoLogin, setCorreoLogin] = useState('');
   const [claveLogin, setClaveLogin] = useState('');
@@ -139,7 +129,67 @@ export default function App() {
   const [errorLogin, setErrorLogin] = useState('');
   const [infoLogin, setInfoLogin] = useState('');
 
-  // CARGAR DATOS GUARDADOS (carrito y favoritos)
+  // ESTADOS: perfil 
+  const [perfil, setPerfil] = useState('comprador');
+  const [menuPerfil, setMenuPerfil] = useState(false);
+  const esResp = perfil === 'responsable';
+
+  // ESTADOS: navegación y avisos
+  const [vista, setVista] = useState('catalogo');
+  const [origen, setOrigen] = useState('catalogo');
+  const [aviso, setAviso] = useState('');
+  const [cargado, setCargado] = useState(false);
+
+  // ESTADOS: catálogo
+  const [productos, setProductos] = useState(PRODUCTOS_INICIALES);
+  const [busqueda, setBusqueda] = useState('');
+  const [categoria, setCategoria] = useState('Maquillaje');
+  const [orden, setOrden] = useState('ninguno');
+
+  // ESTADOS: filtros combinados
+  const [filtros, setFiltros] = useState(FILTROS_VACIOS);
+  const [verFiltros, setVerFiltros] = useState(false);
+
+  // ESTADO: comparador de productos
+  const [comparar, setComparar] = useState([]);
+
+  // ESTADOS: detalle de producto 
+  const [selId, setSelId] = useState(null);
+  const [varianteSel, setVarianteSel] = useState('');
+
+  // ESTADO: favoritos
+  const [favoritos, setFavoritos] = useState([]);
+
+  // ESTADOS: reseñas
+  const [resenas, setResenas] = useState({});
+  const [valorResena, setValorResena] = useState('');
+  const [errorResena, setErrorResena] = useState('');
+
+  // ESTADOS: preguntas del producto
+  const [preguntas, setPreguntas] = useState(PREGUNTAS_INICIALES);
+  const [textoPregunta, setTextoPregunta] = useState('');
+  const [errorPregunta, setErrorPregunta] = useState('');
+
+  // ESTADOS: carrito y cupón
+  const [carrito, setCarrito] = useState([]);
+  const [cupon, setCupon] = useState('');
+  const [cuponAplicado, setCuponAplicado] = useState(false);
+  const [errorCupon, setErrorCupon] = useState('');
+
+  // ESTADOS: compra
+  const [datos, setDatos] = useState(DATOS_VACIOS);
+  const [pedidos, setPedidos] = useState([]);
+
+  // ESTADOS: formulario de producto (responsable)
+  const [form, setForm] = useState(FORM_VACIO);
+  const [editId, setEditId] = useState(null);
+  const [errorForm, setErrorForm] = useState('');
+
+
+
+// EFECTOS DE CARGADO
+
+  // CARGAR datos guardados (carrito y favoritos)
   useEffect(() => {
     const cargar = async () => {
       try {
@@ -173,26 +223,27 @@ export default function App() {
     cargar();
   }, []);
 
-  // GUARDAR DATOS (carrito y favoritos)
+  // GUARDAR datos (carrito y favoritos)
   useEffect(() => {
     if (!cargado) return;
     AsyncStorage.setItem(CLAVE_GUARDADO, JSON.stringify({ carrito, favoritos })).catch(() => {});
   }, [carrito, favoritos, cargado]);
 
-  // AVISO EMERGENTE
-  const avisar = (msg) => {
-    setAviso(msg);
-    setTimeout(() => setAviso(''), 2200);
-  };
 
-  // PRODUCTOS VISIBLES (búsqueda + categoría + filtros combinados + orden)
+
+  // CÁLCULOS (valores que se sacan de los )
+  
+  const rangoInvalido = filtros.min !== '' && filtros.max !== '' && Number(filtros.min) > Number(filtros.max);
+
+
   const visibles = productos
     .filter((p) => {
       const prom = promedioDe(resenas[p.id] || []);
-      const min = filtros.min === '' ? 0 : Number(filtros.min);
-      const max = filtros.max === '' ? Infinity : Number(filtros.max);
+      const min = filtros.min === '' || rangoInvalido ? 0 : Number(filtros.min);
+      const max = filtros.max === '' || rangoInvalido ? Infinity : Number(filtros.max);
       return p.nombre.toLowerCase().includes(busqueda.trim().toLowerCase())
         && (categoria === 'Todas' || p.categoria === categoria)
+        && (filtros.marca === '' || p.marca === filtros.marca)
         && p.precio >= min && p.precio <= max
         && (!filtros.oferta || p.oferta)
         && (!filtros.disp || p.stock > 0)
@@ -200,11 +251,12 @@ export default function App() {
     })
     .sort((a, b) => (orden === 'asc' ? a.precio - b.precio : orden === 'desc' ? b.precio - a.precio : 0));
 
-  // cantidad de filtros activos
+
   const nFiltros = (filtros.min !== '' ? 1 : 0) + (filtros.max !== '' ? 1 : 0)
+    + (filtros.marca !== '' ? 1 : 0)
     + (filtros.oferta ? 1 : 0) + (filtros.disp ? 1 : 0) + (filtros.valMin > 0 ? 1 : 0);
 
-  // CALCULOS DEL CARRITO
+
   const lineas = carrito.map((l) => ({ ...l, p: productos.find((x) => x.id === l.id) }));
   const cantTotal = carrito.reduce((a, l) => a + l.cant, 0);
   const subtotal = lineas.reduce((a, l) => a + l.cant * l.p.precio, 0);
@@ -212,7 +264,129 @@ export default function App() {
   const envio = subtotal === 0 || subtotal >= ENVIO_GRATIS_DESDE ? 0 : ENVIO;
   const total = Math.max(0, subtotal - descuento + envio);
 
-  // FUNCIONES DEL CARRITO
+
+
+
+// FUNCIONES 
+
+  // aviso emergentes en la app
+  const avisar = (msg) => {
+    setAviso(msg);
+    setTimeout(() => setAviso(''), 2200);
+  };
+
+  // LOGIN: validaciones
+  const iniciarSesion = () => {
+    const correo = correoLogin.trim().toLowerCase();
+    if (!/^\S+@\S+\.\S+$/.test(correo)) return setErrorLogin('Escribe un correo válido. Ej: valentina@correo.com');
+    if (claveLogin.length < 6) return setErrorLogin('La contraseña debe tener al menos 6 caracteres.');
+    const nombre = correo.split('@')[0];
+    setUsuario({ nombre, correo });
+    setCorreoLogin('');
+    setClaveLogin('');
+    setVerClave(false);
+    setErrorLogin('');
+    setInfoLogin('');
+    setPerfil(rolLogin);
+    setVista(rolLogin === 'responsable' ? 'inventario' : 'catalogo');
+  };
+
+  // LOGIN: 
+  const olvideClave = () => {
+    setErrorLogin('');
+    setInfoLogin('Simulación: aquí se enviaría un enlace de recuperación a tu correo.');
+  };
+
+  // LOGIN: cerrar sesion
+  const cerrarSesion = () => {
+    setUsuario(null);
+    setMenuPerfil(false);
+    setCarrito([]);
+    setCuponAplicado(false);
+    setCupon('');
+    setErrorCupon('');
+    setComparar([]);
+    setFiltros(FILTROS_VACIOS);
+    setVerFiltros(false);
+    setPerfil('comprador');
+    setVista('catalogo');
+  };
+
+  // PERFIL:  cambiar
+  const cambiarPerfil = (nuevo) => {
+    setPerfil(nuevo);
+    setMenuPerfil(false);
+    setVista(nuevo === 'responsable' ? 'inventario' : 'catalogo');
+    avisar(nuevo === 'responsable' ? 'Perfil: Responsable de la tienda' : 'Perfil: Comprador');
+  };
+
+  // COMPARADOR: agregar o quitar un producto 
+  const toggleComparar = (id) => {
+    if (comparar.includes(id)) return setComparar(comparar.filter((c) => c !== id));
+    if (comparar.length >= 3) return avisar('Máximo 3 productos para comparar');
+    setComparar([...comparar, id]);
+  };
+
+  // FAVORITOS: guardar o quitar un producto
+  const toggleFavorito = (id) => {
+    const esFav = favoritos.includes(id);
+    setFavoritos(esFav ? favoritos.filter((f) => f !== id) : [...favoritos, id]);
+    avisar(esFav ? 'Quitado de favoritos' : 'Guardado en favoritos ♥');
+  };
+
+  // DETALLE:
+  const abrirDetalle = (id, desde) => {
+    setSelId(id);
+    setValorResena('');
+    setErrorResena('');
+    setTextoPregunta('');
+    setErrorPregunta('');
+    setVarianteSel('');
+    setOrigen(desde);
+    setVista('detalle');
+  };
+
+  // RESEÑAS:
+  const guardarResena = (id) => {
+    const n = Number(valorResena);
+    if (!esEntero(valorResena, 1) || n > 5) {
+      return setErrorResena('La valoración debe ser un número entero entre 1 y 5.');
+    }
+    setResenas({ ...resenas, [id]: [...(resenas[id] || []), n] });
+    setValorResena('');
+    setErrorResena('');
+    avisar('Reseña guardada');
+  };
+
+  // PREGUNTAS seccion de productos
+  const enviarPregunta = (productoId) => {
+    const texto = textoPregunta.trim();
+    if (texto.length < 10) return setErrorPregunta('La pregunta debe tener al menos 10 caracteres.');
+    const nueva = {
+      id: 'Q-' + String(preguntas.length + 1).padStart(3, '0'),
+      productoId,
+      texto,
+      fecha: new Date().toLocaleString('es-CO'),
+      estado: 'Pendiente',
+      respuesta: '',
+    };
+    setPreguntas([nueva, ...preguntas]);
+    setTextoPregunta('');
+    setErrorPregunta('');
+    avisar('Pregunta enviada ✓');
+  };
+
+  // PREGUNTAS 
+  const simularRespuesta = (idPregunta) => {
+    setPreguntas(preguntas.map((q) => (q.id === idPregunta && q.estado === 'Pendiente'
+      ? { ...q, estado: 'Respondida', respuesta: 'Respuesta automática de demostración. No fue escrita por una persona real.' }
+      : q)));
+  };
+
+  // CARRITO: suma de productos
+  const enCarrito = (id) => carrito.filter((l) => l.id === id).reduce((a, l) => a + l.cant, 0);
+
+  // CARRITO: agregar un producto
   const agregar = (id, variante = '') => {
     const p = productos.find((x) => x.id === id);
     if (p.stock === 0) return avisar('Producto agotado');
@@ -228,11 +402,13 @@ export default function App() {
     avisar('Agregado al carrito ✓');
   };
 
+  // CARRITO: quitar un producto
   const quitar = (clave) => {
     setCarrito(carrito.filter((l) => claveLinea(l) !== clave));
     avisar('Producto eliminado');
   };
 
+  // CARRITO: cambiar la cantidad de un producto
   const cambiarCant = (clave, delta) => {
     const l = carrito.find((x) => claveLinea(x) === clave);
     if (!l) return;
@@ -243,33 +419,7 @@ export default function App() {
     setCarrito((prev) => prev.map((x) => (claveLinea(x) === clave ? { ...x, cant: nueva } : x)));
   };
 
-  // FAVORITOS
-  const toggleFavorito = (id) => {
-    const esFav = favoritos.includes(id);
-    setFavoritos(esFav ? favoritos.filter((f) => f !== id) : [...favoritos, id]);
-    avisar(esFav ? 'Quitado de favoritos' : 'Guardado en favoritos ♥');
-  };
-
-  // COMPARADOR (máximo 2 productos)
-  const toggleComparar = (id) => {
-    if (comparar.includes(id)) return setComparar(comparar.filter((c) => c !== id));
-    if (comparar.length >= 2) return avisar('Solo puedes comparar 2 productos');
-    setComparar([...comparar, id]);
-  };
-
-  // RESEÑAS (valoración de 1 a 5)
-  const guardarResena = (id) => {
-    const n = Number(valorResena);
-    if (!esEntero(valorResena, 1) || n > 5) {
-      return setErrorResena('La valoración debe ser un número entero entre 1 y 5.');
-    }
-    setResenas({ ...resenas, [id]: [...(resenas[id] || []), n] });
-    setValorResena('');
-    setErrorResena('');
-    avisar('Reseña guardada');
-  };
-
-  // CUPON
+  // CUPÓN: aplicar el código
   const aplicarCupon = () => {
     const codigo = cupon.trim().toUpperCase();
     if (carrito.length === 0) return setErrorCupon('Agrega productos al carrito antes de aplicar un cupón.');
@@ -281,23 +431,14 @@ export default function App() {
     avisar('Cupón aplicado: 10% de descuento ✓');
   };
 
+  // CUPÓN: quitar el cupón aplicado
   const quitarCupon = () => {
     setCuponAplicado(false);
     setErrorCupon('');
     avisar('Cupón quitado');
   };
 
-  // ABRIR DETALLE DE PRODUCTO
-  const abrirDetalle = (id, desde) => {
-    setSelId(id);
-    setValorResena('');
-    setErrorResena('');
-    setVarianteSel('');
-    setOrigen(desde);
-    setVista('detalle');
-  };
-
-  // CHECKOUT: pasar al resumen de compra
+  // CHECKOUT: pasar al resumen de compra 
   const continuar = () => {
     if (carrito.length === 0) return avisar('Tu carrito está vacío');
     const faltante = Object.keys(datos).find((k) => datos[k].trim() === '');
@@ -314,7 +455,7 @@ export default function App() {
     avisar('Prueba: stock reducido');
   };
 
-  // CONFIRMAR COMPRA
+  // COMPRA: confirmar el pedido ( descuento de stock y historial)
   const confirmar = () => {
     if (carrito.length === 0) return avisar('Tu carrito está vacío');
 
@@ -349,29 +490,20 @@ export default function App() {
     avisar('Pedido ' + pedido.codigo + ' confirmado (simulación, sin cobro real)');
   };
 
-  // unidades de un producto que están en el carrito (suma todas sus opciones)
-  const enCarrito = (id) => carrito.filter((l) => l.id === id).reduce((a, l) => a + l.cant, 0);
-
-  // CAMBIAR DE PERFIL
-  const cambiarPerfil = (nuevo) => {
-    setPerfil(nuevo);
-    setMenuPerfil(false);
-    setVista(nuevo === 'responsable' ? 'inventario' : 'catalogo');
-    avisar(nuevo === 'responsable' ? 'Perfil: Responsable de la tienda' : 'Perfil: Comprador');
-  };
-
-  // RESPONSABLE: formulario de producto
+  // RESPONSABLE: limpiar el formulario de producto
   const limpiarForm = () => {
     setEditId(null);
     setForm(FORM_VACIO);
     setErrorForm('');
   };
 
+  // RESPONSABLE: abrir el formulario para un producto nuevo
   const abrirNuevo = () => {
     limpiarForm();
     setVista('producto');
   };
 
+  // RESPONSABLE: abrir el formulario para editar un producto
   const editarProducto = (p) => {
     setEditId(p.id);
     setForm({
@@ -382,6 +514,7 @@ export default function App() {
     setVista('producto');
   };
 
+  // RESPONSABLE: guardar producto (nuevo o editado)
   const guardarProducto = () => {
     const nombre = form.nombre.trim();
     const descripcion = form.descripcion.trim();
@@ -401,70 +534,38 @@ export default function App() {
     } else {
       const maxN = productos.reduce((m, p) => Math.max(m, parseInt(p.id.replace('PROD-', ''), 10) || 0), 0);
       const id = 'PROD-' + String(maxN + 1).padStart(3, '0');
-      setProductos([...productos, { id, ...producto, vendidos: 0, icono: form.icono.trim() || '🛍️' }]);
+      setProductos([...productos, { id, ...producto, marca: 'Wonder Glam', vendidos: 0, icono: form.icono.trim() || '🛍️' }]);
       avisar('Producto ' + id + ' registrado ✓');
     }
     limpiarForm();
     setVista('inventario');
   };
 
-  // LOGIN: iniciar sesión (valida correo y contraseña)
-  const iniciarSesion = () => {
-    const correo = correoLogin.trim().toLowerCase();
-    if (!/^\S+@\S+\.\S+$/.test(correo)) return setErrorLogin('Escribe un correo válido. Ej: valentina@correo.com');
-    if (claveLogin.length < 6) return setErrorLogin('La contraseña debe tener al menos 6 caracteres.');
-    const nombre = correo.split('@')[0];
-    setUsuario({ nombre, correo });
-    setCorreoLogin('');
-    setClaveLogin('');
-    setVerClave(false);
-    setErrorLogin('');
-    setInfoLogin('');
-    setPerfil(rolLogin);
-    setVista(rolLogin === 'responsable' ? 'inventario' : 'catalogo');
-  };
-
-  // LOGIN: olvidé mi contraseña (simulado)
-  const olvideClave = () => {
-    setErrorLogin('');
-    setInfoLogin('Simulación: aquí se enviaría un enlace de recuperación a tu correo.');
-  };
-
-  // LOGIN: cerrar sesión
-  const cerrarSesion = () => {
-    setUsuario(null);
-    setMenuPerfil(false);
-    setCarrito([]);
-    setCuponAplicado(false);
-    setCupon('');
-    setErrorCupon('');
-    setComparar([]);
-    setFiltros(FILTROS_VACIOS);
-    setVerFiltros(false);
-    setPerfil('comprador');
-    setVista('catalogo');
-  };
+  // RESPONSABLE: campo de formulario reutilizable
+  const campo = (label, clave, placeholder, multiline = false) => (
+    <>
+      <Text style={s.label}>{label}</Text>
+      <TextInput style={[s.input, multiline && { height: 80, textAlignVertical: 'top' }]} multiline={multiline}
+        value={form[clave]} placeholder={placeholder}
+        onChangeText={(t) => setForm({ ...form, [clave]: t })} />
+    </>
+  );
 
 
 
+// VISTAS DE LA PAGINA
 
-
-
-
-                             // ESTRUCTURA APP //
-
-
-  // VISTA: LOGIN (fondo blanco, logo grande y tarjeta con sombra)
+  // VISTA 1: LOGIN 
   const vistaLogin = () => (
     <ScrollView
       style={{ flex: 1, backgroundColor: C.blanco }}
       contentContainerStyle={s.loginContenido}
       keyboardShouldPersistTaps="handled"
     >
-      {/* Logo grande arriba */}
+    
       <Image source={require('./assets/logoo2.png')} style={s.loginLogo} />
 
-      {/* Tarjeta del formulario */}
+      
       <View style={s.loginCard}>
         <Text style={s.loginTitulo}>Iniciar sesión</Text>
 
@@ -504,7 +605,7 @@ export default function App() {
         {/* Elegir rol: comprador o responsable */}
         <Text style={s.label}>Entrar como</Text>
         <View style={s.catFila}>
-          {[['comprador', '🛍️ Comprador'], ['responsable', '🏪 Responsable']].map(([k, t]) => (
+          {[['comprador', ' Comprador'], ['responsable', 'Responsable']].map(([k, t]) => (
             <Pressable key={k} onPress={() => setRolLogin(k)}
               style={[s.chip, rolLogin === k && s.chipActivo]}>
               <Text style={[s.chipTxt, rolLogin === k && { color: C.blanco }]}>{t}</Text>
@@ -528,13 +629,7 @@ export default function App() {
     </ScrollView>
   );
 
-
-
-
-
-
-
- // ENCABEZADO (barra superior)
+  // ENCABEZADO: barra superior
   const encabezado = (conBuscador) => (
     <View style={[s.header, !conBuscador && { paddingBottom: 24 }]}>
       <View style={s.headerFila}>
@@ -583,25 +678,31 @@ export default function App() {
     </Pressable>
   );
 
-  // GRILLA DE PRODUCTOS
+  // GRILLA DE PRODUCTOS (2 columnas)
+  
   const grilla = (data, vacioNode) => (
-    <FlatList
-      key="grilla"
-      data={data}
-      numColumns={2}
-      keyExtractor={(p) => p.id}
-      renderItem={({ item }) => tarjeta(item)}
-      columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 14 }}
-      contentContainerStyle={{ paddingBottom: 90 }}
-      ListEmptyComponent={vacioNode}
-    />
+    data.length === 0 ? (
+      <ScrollView key="grilla-vacia" contentContainerStyle={{ paddingBottom: 90 }}>
+        {vacioNode}
+      </ScrollView>
+    ) : (
+      <FlatList
+        key="grilla"
+        data={data}
+        numColumns={2}
+        keyExtractor={(p) => p.id}
+        renderItem={({ item }) => tarjeta(item)}
+        columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 14 }}
+        contentContainerStyle={{ paddingBottom: 90 }}
+      />
+    )
   );
 
-  
-  // VISTA: CATALOGO
+  // VISTA 2: CATÁLOGO
   const vistaCatalogo = () => (
     <View style={{ flex: 1 }}>
       {encabezado(true)}
+
       {/* Barra de categorías */}
       <View style={s.tabs}>
         {['Todas', ...CATEGORIAS].map((c) => (
@@ -611,7 +712,7 @@ export default function App() {
         ))}
       </View>
 
-      {/* Título, carrito, orden por precio y botón de filtros */}
+    
       <View style={s.tituloFila}>
         <Text style={s.titulo}>{categoria}</Text>
 
@@ -642,6 +743,7 @@ export default function App() {
         <View style={[s.resumenCaja, { marginHorizontal: 14, marginTop: 0, marginBottom: 8 }]}>
           <Text style={s.lineaNombre}>Filtros combinados</Text>
 
+          {/* Rango de precio */}
           <Text style={s.label}>Rango de precio (COP)</Text>
           <View style={s.cuponFila}>
             <TextInput style={[s.input, { flex: 1 }]} value={filtros.min} placeholder="Mínimo" keyboardType="numeric"
@@ -649,17 +751,31 @@ export default function App() {
             <TextInput style={[s.input, { flex: 1, marginLeft: 8 }]} value={filtros.max} placeholder="Máximo" keyboardType="numeric"
               onChangeText={(t) => setFiltros({ ...filtros, max: t.replace(/[^0-9]/g, '') })} />
           </View>
+          {rangoInvalido && <Text style={s.errorTxt}>⚠ El precio mínimo no puede ser mayor que el máximo.</Text>}
 
+          {/* Marca */}
+          <Text style={s.label}>Marca</Text>
+          <View style={s.catFila}>
+            {MARCAS.map((m) => (
+              <Pressable key={m} onPress={() => setFiltros({ ...filtros, marca: filtros.marca === m ? '' : m })}
+                style={[s.chip, filtros.marca === m && s.chipActivo, { marginBottom: 6 }]}>
+                <Text style={[s.chipTxt, filtros.marca === m && { color: C.blanco }]}>{m}</Text>
+              </Pressable>
+            ))}
+          </View>
+
+          {/* Valoración mínima */}
           <Text style={s.label}>Valoración mínima</Text>
           <View style={s.catFila}>
             {[[0, 'Todas'], [3, '3★ o más'], [4, '4★ o más'], [5, '5★']].map(([n, t]) => (
-              <Pressable key={n} onPress={() => setFiltros({ ...filtros, valMin: n })}
+              <Pressable key={'val-' + n} onPress={() => setFiltros({ ...filtros, valMin: n })}
                 style={[s.chip, filtros.valMin === n && s.chipActivo, { marginBottom: 6 }]}>
                 <Text style={[s.chipTxt, filtros.valMin === n && { color: C.blanco }]}>{t}</Text>
               </Pressable>
             ))}
           </View>
 
+          {/* Ofertas y disponibilidad */}
           <View style={s.catFila}>
             <Pressable onPress={() => setFiltros({ ...filtros, oferta: !filtros.oferta })}
               style={[s.chip, filtros.oferta && s.chipActivo]}>
@@ -672,36 +788,46 @@ export default function App() {
           </View>
 
           <Text style={s.nota}>{visibles.length} {visibles.length === 1 ? 'producto encontrado' : 'productos encontrados'}</Text>
-          <Pressable onPress={() => setFiltros(FILTROS_VACIOS)}><Text style={s.link}>Limpiar filtros</Text></Pressable>
+          <Pressable onPress={() => setFiltros(FILTROS_VACIOS)}><Text style={s.link}>Restablecer</Text></Pressable>
         </View>
       )}
 
       {/* Barra del comparador */}
       {comparar.length > 0 && (
         <View style={s.compararBarra}>
-          <Text style={s.compararBarraTxt}>⚖ {comparar.length}/2 seleccionados</Text>
+          <Text style={s.compararBarraTxt}>⚖ {comparar.length}/3 seleccionados</Text>
           <Pressable style={s.btnCupon}
-            onPress={() => (comparar.length === 2 ? setVista('comparar') : avisar('Elige 2 productos para comparar'))}>
+            onPress={() => (comparar.length >= 2 ? setVista('comparar') : avisar('Elige mínimo 2 productos'))}>
             <Text style={s.btnTxt}>Comparar</Text>
           </Pressable>
           <Pressable onPress={() => setComparar([])}><Text style={s.eliminar}>Limpiar</Text></Pressable>
         </View>
       )}
 
+      {/* Productos */}
       {grilla(visibles,
-        <Vacio msg="No encontramos productos" btn="Ver todos"
+        <Vacio
+          msg={nFiltros > 0 ? 'Ningún producto cumple los filtros. Cambia o restablece los filtros.' : 'No encontramos productos'}
+          btn="Ver todos"
           onPress={() => { setBusqueda(''); setCategoria('Todas'); setFiltros(FILTROS_VACIOS); }} />)}
     </View>
   );
 
-  
-
-  // VISTA: DETALLE DE PRODUCTO
+  // VISTA 3: DETALLE DE PRODUCTO
   const vistaDetalle = () => {
     const p = productos.find((x) => x.id === selId);
     const esFav = favoritos.includes(p.id);
     const lista = resenas[p.id] || [];
     const prom = promedioDe(lista);
+
+    // preguntas 
+    const delProducto = preguntas.filter((q) => q.productoId === p.id);
+
+    // productos relacionados 
+    const relacionados = productos
+      .filter((x) => x.categoria === p.categoria && x.id !== p.id && x.stock > 0)
+      .slice(0, 4);
+
     return (
       <View style={{ flex: 1, backgroundColor: C.blanco }}>
         <View style={s.detalleBarra}>
@@ -711,15 +837,19 @@ export default function App() {
         <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
           <View style={s.detalleImg}><Text style={{ fontSize: 120 }}>{p.icono}</Text></View>
           <View style={s.detalleInfo}>
+
+            {/* Etiqueta más vendido y favorito */}
             <View style={s.detalleFila}>
               {p.vendidos > 300 ? <View style={s.masVendido}><Text style={s.masVendidoTxt}>MÁS VENDIDO</Text></View> : <View />}
               <Pressable style={s.corazon} onPress={() => toggleFavorito(p.id)}>
                 <Text style={{ fontSize: 20 }}>{esFav ? '💜' : '🤍'}</Text>
               </Pressable>
             </View>
+
+            {/* Nombre, descripción, categoría y marca */}
             <Text style={s.detalleNombre}>{p.nombre}</Text>
             <Text style={s.detalleDesc}>{p.descripcion}</Text>
-            <Text style={s.detalleCat}>Categoría: {p.categoria}</Text>
+            <Text style={s.detalleCat}>Categoría: {p.categoria} · Marca: {p.marca}</Text>
 
             {/* Selector de variantes */}
             {p.variantes && (
@@ -736,6 +866,7 @@ export default function App() {
               </View>
             )}
 
+            {/* Precio y stock */}
             <View style={s.precioFila}>
               <Text style={s.detallePrecio}>{COP(p.precio)}</Text>
               {p.oferta && <View style={s.ofertaCaja}><Text style={s.ofertaCajaTxt}>10% OFF</Text></View>}
@@ -744,6 +875,7 @@ export default function App() {
             <Text style={[s.stockDetalle, { color: p.stock === 0 ? C.rojo : C.verde }]}>
               {p.stock === 0 ? 'AGOTADO' : 'Stock disponible: ' + p.stock}
             </Text>
+
             {/* Reseñas */}
             <View style={s.resenaCaja}>
               <Text style={s.lineaNombre}>Reseñas de compradores</Text>
@@ -769,6 +901,50 @@ export default function App() {
               </View>
               {errorResena !== '' && <Text style={s.errorTxt}>⚠ {errorResena}</Text>}
             </View>
+
+            {/* Preguntas del producto (HU24) */}
+            <View style={s.resenaCaja}>
+              <Text style={s.lineaNombre}>Preguntas</Text>
+              {delProducto.length === 0 && <Text style={s.nota}>Aún no hay preguntas de este producto.</Text>}
+              {delProducto.map((q) => (
+                <View key={q.id} style={s.preguntaCaja}>
+                  <Text style={s.resumenFilaTxt}>❓ {q.texto}</Text>
+                  <Text style={s.nota}>{q.fecha} · {q.estado}</Text>
+                  {q.estado === 'Respondida'
+                    ? <Text style={s.respuestaTxt}>🤖 {q.respuesta}</Text>
+                    : <Pressable onPress={() => simularRespuesta(q.id)}>
+                        <Text style={s.link}>🧪 Simular respuesta (demo)</Text>
+                      </Pressable>}
+                </View>
+              ))}
+              <Text style={s.label}>Haz tu pregunta (mínimo 10 caracteres)</Text>
+              <TextInput style={[s.input, { height: 70, textAlignVertical: 'top' }]} multiline
+                value={textoPregunta} placeholder="Escribe tu pregunta"
+                onChangeText={(t) => { setTextoPregunta(t); setErrorPregunta(''); }} />
+              {errorPregunta !== '' && <Text style={s.errorTxt}>⚠ {errorPregunta}</Text>}
+              <Pressable style={s.btnGrandeInline} onPress={() => enviarPregunta(p.id)}>
+                <Text style={s.btnGrandeTxt}>Enviar pregunta</Text>
+              </Pressable>
+            </View>
+
+            {/* Productos relacionados (HU31) */}
+            <View style={s.resenaCaja}>
+              <Text style={s.lineaNombre}>Productos relacionados</Text>
+              {relacionados.length === 0 ? (
+                <Text style={s.nota}>No hay productos relacionados disponibles por ahora.</Text>
+              ) : (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
+                  {relacionados.map((x) => (
+                    <Pressable key={x.id} style={s.relCard} onPress={() => abrirDetalle(x.id, origen)}>
+                      <View style={s.relImg}><Text style={{ fontSize: 34 }}>{x.icono}</Text></View>
+                      <Text style={s.relNombre} numberOfLines={2}>{x.nombre}</Text>
+                      <Text style={s.relPrecio}>{COP(x.precio)}</Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              )}
+            </View>
+
             {/* Medios de pago */}
             <Text style={s.medios}>Medios de pago (simulados)</Text>
             <View style={s.mediosFila}>
@@ -777,6 +953,8 @@ export default function App() {
             </View>
           </View>
         </ScrollView>
+
+        {/* Botón agregar al carrito */}
         <Pressable style={[s.btnGrande, p.stock === 0 && { opacity: 0.4 }]} onPress={() => agregar(p.id, varianteSel)}>
           <Text style={s.btnGrandeTxt}>{p.stock === 0 ? 'Agotado' : 'Agregar al carrito'}</Text>
         </Pressable>
@@ -784,12 +962,25 @@ export default function App() {
     );
   };
 
-  // VISTA: COMPARADOR (2 productos lado a lado)
+  // VISTA 4: COMPARADOR 
   const vistaComparar = () => {
     const lista = comparar.map((id) => productos.find((p) => p.id === id)).filter(Boolean);
+
+    
+    if (lista.length < 2) {
+      return (
+        <View style={{ flex: 1 }}>
+          {encabezado(false)}
+          <Vacio msg="Elige al menos 2 productos para comparar" btn="Volver al catálogo" onPress={() => setVista('catalogo')} />
+        </View>
+      );
+    }
+
+    // filas de la tabla de comparación
     const filas = [
+      ['Marca', (p) => p.marca],
       ['Categoría', (p) => p.categoria],
-      ['Precio', (p) => COP(p.precio) + (lista.length > 1 && lista.every((x) => x === p || p.precio < x.precio) ? '\n✓ Más económico' : '')],
+      ['Precio', (p) => COP(p.precio) + (lista.every((x) => x === p || p.precio < x.precio) ? '\n✓ Más económico' : '')],
       ['Oferta', (p) => (p.oferta ? 'Sí, 10% OFF' : 'No')],
       ['Disponibilidad', (p) => (p.stock === 0 ? 'Agotado' : p.stock + ' unidades')],
       ['Opciones', (p) => (p.variantes ? p.variantes.join(', ') : 'Única')],
@@ -799,20 +990,26 @@ export default function App() {
       }],
       ['Vendidos', (p) => String(p.vendidos)],
     ];
+
     return (
       <View style={{ flex: 1 }}>
         {encabezado(false)}
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
           <Text style={s.titulo}>Comparador</Text>
+
+          {/* Encabezado de columnas: icono, nombre y botón Quitar */}
           <View style={s.compFila}>
             <View style={{ width: 90 }} />
             {lista.map((p) => (
               <View key={p.id} style={s.compCol}>
                 <Text style={{ fontSize: 40 }}>{p.icono}</Text>
                 <Text style={[s.lineaNombre, { textAlign: 'center' }]} numberOfLines={3}>{p.nombre}</Text>
+                <Pressable onPress={() => toggleComparar(p.id)}><Text style={s.eliminar}>Quitar</Text></Pressable>
               </View>
             ))}
           </View>
+
+          {/* Filas de comparación */}
           {filas.map(([etiqueta, fn]) => (
             <View key={etiqueta} style={s.compFila}>
               <Text style={s.compEtiqueta}>{etiqueta}</Text>
@@ -821,6 +1018,8 @@ export default function App() {
               ))}
             </View>
           ))}
+
+          {/* Botón Ver detalle */}
           <View style={s.compFila}>
             <View style={{ width: 90 }} />
             {lista.map((p) => (
@@ -831,6 +1030,7 @@ export default function App() {
               </View>
             ))}
           </View>
+
           <Pressable onPress={() => { setComparar([]); setVista('catalogo'); }}>
             <Text style={s.link}>Nueva comparación</Text>
           </Pressable>
@@ -840,73 +1040,131 @@ export default function App() {
     );
   };
 
-  // VISTA: CARRITO
-  const vistaCarrito = () => (
+  // VISTA 5: FAVORITOS
+  const vistaFavoritos = () => (
     <View style={{ flex: 1 }}>
-      <View style={s.headerCarrito}>
-        <Text style={s.carritoTitulo}>Carrito de Compras ({cantTotal})</Text>
-        <View style={s.resumenFila}>
-          <Text style={s.totalGrande}>{COP(total)}</Text>
-          <Pressable style={[s.btnContinuar, carrito.length === 0 && { opacity: 0.4 }]}
-            onPress={() => (carrito.length ? setVista('checkout') : avisar('Tu carrito está vacío'))}>
-            <Text style={s.btnContinuarTxt}>Continuar ({cantTotal})</Text>
-          </Pressable>
-        </View>
-      </View>
-      <ScrollView contentContainerStyle={{ padding: 14, paddingBottom: 100 }}>
-        {lineas.length === 0 && <Vacio msg="Tu carrito está vacío" btn="Ir al catálogo" onPress={() => setVista('catalogo')} />}
-        {lineas.map((l) => (
-          <View key={claveLinea(l)} style={s.lineaCarrito}>
-            <View style={s.lineaFila}>
-              <View style={s.lineaImg}><Text style={{ fontSize: 34 }}>{l.p.icono}</Text></View>
-              <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text style={s.lineaNombre} numberOfLines={2}>{l.p.nombre}</Text>
-                {l.variante !== '' && <Text style={s.nota}>Opción: {l.variante}</Text>}
-                <View style={s.cantFila}>
-                  <Pressable style={s.cantBtn} onPress={() => cambiarCant(claveLinea(l), -1)}><Text style={s.cantBtnTxt}>−</Text></Pressable>
-                  <View style={s.cantCaja}><Text style={s.cantTxt}>{l.cant} u</Text></View>
-                  <Pressable style={s.cantBtn} onPress={() => cambiarCant(claveLinea(l), 1)}><Text style={s.cantBtnTxt}>+</Text></Pressable>
-                </View>
-              </View>
-              <View style={{ alignItems: 'flex-end' }}>
-                <Text style={s.lineaPrecio}>{COP(l.p.precio * l.cant)}</Text>
-                <Pressable onPress={() => quitar(claveLinea(l))}><Text style={s.eliminar}>Eliminar</Text></Pressable>
-              </View>
-            </View>
-            <View style={s.envioFila}>
-              <Text style={s.envioTxt}>Envío</Text>
-              <View style={[s.envioBarra, { backgroundColor: envio === 0 ? C.verde : C.rojo }]} />
-              <Text style={s.envioTxt}>{envio === 0 ? 'Gratis' : COP(ENVIO_GRATIS_DESDE - subtotal)}</Text>
-            </View>
-          </View>
-        ))}
-        {/* Cupón */}
-        {lineas.length > 0 && (
-          <View style={s.resumenCaja}>
-            <Text style={s.lineaNombre}>Cupón promocional</Text>
-            <View style={s.cuponFila}>
-              <TextInput style={[s.input, { flex: 1 }]} value={cupon} placeholder="Código de cupón"
-                autoCapitalize="characters"
-                onChangeText={(t) => { setCupon(t); setErrorCupon(''); }} />
-              <Pressable style={s.btnCupon} onPress={aplicarCupon}>
-                <Text style={s.btnTxt}>Aplicar</Text>
-              </Pressable>
-            </View>
-            {errorCupon !== '' && <Text style={s.errorTxt}>⚠ {errorCupon}</Text>}
-            {cuponAplicado && (
-              <View style={s.cuponFila}>
-                <Text style={s.cuponOk}>✓ {CUPON_CODIGO} aplicado (10% de descuento)</Text>
-                <Pressable onPress={quitarCupon}><Text style={s.eliminar}>Quitar</Text></Pressable>
-              </View>
-            )}
-          </View>
-        )}
-        {lineas.length > 0 && <Resumen subtotal={subtotal} descuento={descuento} envio={envio} total={total} />}
-      </ScrollView>
+      {encabezado(false)}
+      <Text style={[s.titulo, { padding: 16 }]}>Favoritos</Text>
+      {grilla(productos.filter((p) => favoritos.includes(p.id)),
+        <Vacio msg="Aún no tienes favoritos" btn="Volver al catálogo" onPress={() => setVista('catalogo')} />)}
     </View>
   );
 
-  // VISTA: CHECKOUT (datos del comprador)
+  // VISTA 6: CARRITO
+  const vistaCarrito = () => {
+    // cuánto falta para envío gratis y progreso de la barra
+    const faltaEnvio = Math.max(0, ENVIO_GRATIS_DESDE - subtotal);
+    const progresoEnvio = Math.min(1, subtotal / ENVIO_GRATIS_DESDE);
+
+    return (
+      <View style={{ flex: 1, backgroundColor: C.fondo }}>
+
+        {/* Encabezado del carrito */}
+        <View style={s.carritoHeader}>
+          <Pressable onPress={() => setVista('catalogo')} hitSlop={10}>
+            <Text style={s.carritoVolver}>⬅</Text>
+          </Pressable>
+          <Text style={s.carritoHeaderTxt}>Mi carrito</Text>
+          <Text style={s.carritoCuenta}>{cantTotal} {cantTotal === 1 ? 'producto' : 'productos'}</Text>
+        </View>
+
+        {lineas.length === 0 ? (
+          /* Carrito vacío */
+          <View style={s.carritoVacio}>
+            <Text style={s.carritoVacioTitulo}>Tu carrito está vacío</Text>
+            <Text style={s.nota}>Agrega productos desde el catálogo</Text>
+            <Pressable style={s.btn} onPress={() => setVista('catalogo')}>
+              <Text style={s.btnTxt}>Ir al catálogo</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <>
+            <ScrollView contentContainerStyle={{ padding: 14, paddingBottom: 20 }}>
+
+              {/* Barra de envío gratis */}
+              <View style={s.envioCard}>
+                <Text style={s.envioMsg}>
+                  {faltaEnvio === 0 ? ' ¡Tienes envío gratis!' : ' Te faltan ' + COP(faltaEnvio) + ' para envío gratis'}
+                </Text>
+                <View style={s.envioFondo}>
+                  <View style={[s.envioRelleno, { width: (progresoEnvio * 100) + '%', backgroundColor: faltaEnvio === 0 ? C.verde : C.morado }]} />
+                </View>
+              </View>
+
+              {/* Productos del carrito */}
+              {lineas.map((l) => (
+                <View key={claveLinea(l)} style={s.carritoItem}>
+                  <View style={s.carritoImg}><Text style={{ fontSize: 36 }}>{l.p.icono}</Text></View>
+
+                  <View style={{ flex: 1, marginLeft: 12 }}>
+                    <Text style={s.lineaNombre} numberOfLines={2}>{l.p.nombre}</Text>
+                    {l.variante !== '' && <Text style={s.carritoVar}>Opción: {l.variante}</Text>}
+                    <Text style={s.carritoUnit}>{COP(l.p.precio)} c/u</Text>
+
+                    {/* Cantidad */}
+                    <View style={s.cantFila}>
+                      <Pressable style={s.cantBtn} onPress={() => cambiarCant(claveLinea(l), -1)}><Text style={s.cantBtnTxt}>−</Text></Pressable>
+                      <View style={s.cantCaja}><Text style={s.cantTxt}>{l.cant}</Text></View>
+                      <Pressable style={s.cantBtn} onPress={() => cambiarCant(claveLinea(l), 1)}><Text style={s.cantBtnTxt}>+</Text></Pressable>
+                    </View>
+                  </View>
+
+                  {/* Eliminar y subtotal de la línea */}
+                  <View style={s.carritoDerecha}>
+                    <Pressable onPress={() => quitar(claveLinea(l))} hitSlop={8}>
+                      <Text style={{ fontSize: 20 }}>🗑️</Text>
+                    </Pressable>
+                    <Text style={s.carritoSub}>{COP(l.p.precio * l.cant)}</Text>
+                  </View>
+                </View>
+              ))}
+
+              {/* Cupón */}
+              <View style={s.resumenCaja}>
+                <Text style={s.lineaNombre}> Cupón promocional</Text>
+                <View style={s.cuponFila}>
+                  <TextInput style={[s.input, { flex: 1 }]} value={cupon} placeholder="Código de cupón"
+                    autoCapitalize="characters"
+                    onChangeText={(t) => { setCupon(t); setErrorCupon(''); }} />
+                  <Pressable style={s.btnCupon} onPress={aplicarCupon}>
+                    <Text style={s.btnTxt}>Aplicar</Text>
+                  </Pressable>
+                </View>
+                {errorCupon !== '' && <Text style={s.errorTxt}>⚠ {errorCupon}</Text>}
+                {cuponAplicado && (
+                  <View style={s.cuponFila}>
+                    <Text style={s.cuponOk}>✓ {CUPON_CODIGO} aplicado (10% de descuento)</Text>
+                    <Pressable onPress={quitarCupon}><Text style={s.eliminar}>Quitar</Text></Pressable>
+                  </View>
+                )}
+              </View>
+
+              {/* Resumen de la compra */}
+              <Resumen subtotal={subtotal} descuento={descuento} envio={envio} total={total} />
+
+              {/* Vaciar carrito */}
+              <Pressable onPress={() => { setCarrito([]); avisar('Carrito vaciado'); }}>
+                <Text style={[s.link, { color: C.rojo }]}>Vaciar carrito</Text>
+              </Pressable>
+            </ScrollView>
+
+            {/* Barra inferior: total y botón continuar */}
+            <View style={s.barraTotal}>
+              <View>
+                <Text style={s.barraTotalLbl}>Total a pagar</Text>
+                <Text style={s.barraTotalVal}>{COP(total)}</Text>
+              </View>
+              <Pressable style={s.btnContinuar} onPress={() => setVista('checkout')}>
+                <Text style={s.btnContinuarTxt}>Continuar ({cantTotal})</Text>
+              </Pressable>
+            </View>
+          </>
+        )}
+      </View>
+    );
+  };
+
+  // VISTA 7: CHECKOUT 
   const vistaCheckout = () => (
     <View style={{ flex: 1 }}>
       {encabezado(false)}
@@ -927,13 +1185,14 @@ export default function App() {
     </View>
   );
 
-  // VISTA: RESUMEN (antes de confirmar)
+  // VISTA 8: RESUMEN compra
   const vistaResumen = () => (
     <View style={{ flex: 1 }}>
       {encabezado(false)}
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
         <Text style={s.titulo}>Revisa tu pedido</Text>
 
+        {/* Datos de entrega */}
         <View style={s.resumenCaja}>
           <Text style={s.lineaNombre}>Datos de entrega</Text>
           {Object.keys(NOMBRES_CAMPOS).map((k) => (
@@ -941,6 +1200,7 @@ export default function App() {
           ))}
         </View>
 
+        {/* Productos */}
         <View style={s.resumenCaja}>
           <Text style={s.lineaNombre}>Productos</Text>
           {lineas.map((l) => (
@@ -950,6 +1210,7 @@ export default function App() {
           ))}
         </View>
 
+        {/* Totales */}
         <Resumen subtotal={subtotal} descuento={descuento} envio={envio} total={total} />
         <Text style={s.nota}>Simulación académica: no se realiza ningún cobro real.</Text>
 
@@ -963,44 +1224,75 @@ export default function App() {
     </View>
   );
 
-  // VISTA: FAVORITOS
-  const vistaFavoritos = () => (
-    <View style={{ flex: 1 }}>
-      {encabezado(false)}
-      <Text style={[s.titulo, { padding: 16 }]}>Favoritos</Text>
-      {grilla(productos.filter((p) => favoritos.includes(p.id)),
-        <Vacio msg="Aún no tienes favoritos" btn="Volver al catálogo" onPress={() => setVista('catalogo')} />)}
-    </View>
-  );
-
-  // VISTA: HISTORIAL DE PEDIDOS
+  // VISTA 9: HISTORIAL DE PEDIDOS
   const vistaHistorial = () => (
-    <View style={{ flex: 1 }}>
-      {encabezado(false)}
-      <Text style={[s.titulo, { padding: 16 }]}>Historial</Text>
-      <FlatList
-        key="lista-historial"
-        data={pedidos}
-        keyExtractor={(p) => p.codigo}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 90 }}
-        ListEmptyComponent={<Vacio msg="No hay pedidos registrados" btn="Ir al catálogo" onPress={() => setVista('catalogo')} />}
-        renderItem={({ item }) => (
-          <View style={s.pedidoCaja}>
-            <Text style={s.lineaNombre}>{item.codigo}</Text>
-            <Text style={s.nota}>{item.fecha}</Text>
-            {item.items.map((i, idx) => (
-              <Text key={idx} style={s.resumenFilaTxt}>{i.cant} × {i.nombre} — {COP(i.precio)} c/u</Text>
-            ))}
-            {item.descuento > 0 && <Text style={s.descuentoTxt}>Descuento: -{COP(item.descuento)}</Text>}
-            <Text style={s.nota}>Envío: {item.envio === 0 ? 'Gratis' : COP(item.envio)}</Text>
-            <Text style={s.lineaPrecio}>Total: {COP(item.total)}</Text>
-          </View>
-        )}
-      />
+    <View style={{ flex: 1, backgroundColor: C.fondo }}>
+
+      {/* Encabezado del historial */}
+      <View style={s.carritoHeader}>
+        <Pressable onPress={() => setVista('catalogo')} hitSlop={10}>
+          <Text style={s.carritoVolver}>⬅</Text>
+        </Pressable>
+        <Text style={s.carritoHeaderTxt}>Mis pedidos</Text>
+        <Text style={s.carritoCuenta}>{pedidos.length} {pedidos.length === 1 ? 'pedido' : 'pedidos'}</Text>
+      </View>
+
+      {pedidos.length === 0 ? (
+        /* Historial vacío */
+        <View style={s.carritoVacio}>
+          <Text style={{ fontSize: 70 }}>📦</Text>
+          <Text style={s.carritoVacioTitulo}>Aún no tienes pedidos</Text>
+          <Text style={s.nota}>Cuando compres, tus pedidos aparecerán aquí</Text>
+          <Pressable style={s.btn} onPress={() => setVista('catalogo')}>
+            <Text style={s.btnTxt}>Ir al catálogo</Text>
+          </Pressable>
+        </View>
+      ) : (
+        /* Lista de pedidos */
+        <FlatList
+          key="lista-historial"
+          data={pedidos}
+          keyExtractor={(p) => p.codigo}
+          contentContainerStyle={{ padding: 14, paddingBottom: 90 }}
+          renderItem={({ item }) => (
+            <View style={s.pedidoCard}>
+
+              {/* Código, fecha y estado */}
+              <View style={s.pedidoTop}>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.pedidoCodigo}>🧾 {item.codigo}</Text>
+                  <Text style={s.nota}>{item.fecha}</Text>
+                </View>
+                <View style={s.pedidoBadge}><Text style={s.pedidoBadgeTxt}>✓ Confirmado</Text></View>
+              </View>
+
+              <View style={s.pedidoLinea} />
+
+              {/* Productos del pedido */}
+              {item.items.map((i, idx) => (
+                <View key={idx} style={s.pedidoItem}>
+                  <Text style={s.pedidoItemNombre} numberOfLines={2}>{i.cant} × {i.nombre}</Text>
+                  <Text style={s.pedidoItemPrecio}>{COP(i.precio * i.cant)}</Text>
+                </View>
+              ))}
+
+              <View style={s.pedidoLinea} />
+
+              {/* Descuento, envío y total */}
+              {item.descuento > 0 && <Text style={s.descuentoTxt}>Descuento: -{COP(item.descuento)}</Text>}
+              <Text style={s.nota}>Envío: {item.envio === 0 ? 'Gratis' : COP(item.envio)}</Text>
+              <View style={s.pedidoTotalFila}>
+                <Text style={s.pedidoTotalLbl}>Total</Text>
+                <Text style={s.pedidoTotalVal}>{COP(item.total)}</Text>
+              </View>
+            </View>
+          )}
+        />
+      )}
     </View>
   );
 
-  // VISTA RESPONSABLE: INVENTARIO
+  // VISTA 10 (RESPONSABLE): INVENTARIO
   const vistaInventario = () => {
     const unidades = productos.reduce((a, p) => a + p.stock, 0);
     const agotados = productos.filter((p) => p.stock === 0).length;
@@ -1030,7 +1322,7 @@ export default function App() {
                 <View style={s.lineaImg}><Text style={{ fontSize: 30 }}>{p.icono}</Text></View>
                 <View style={{ flex: 1, marginLeft: 10 }}>
                   <Text style={s.lineaNombre} numberOfLines={2}>{p.nombre}</Text>
-                  <Text style={s.nota}>{p.id} · {p.categoria} · {COP(p.precio)}</Text>
+                  <Text style={s.nota}>{p.id} · {p.marca} · {p.categoria} · {COP(p.precio)}</Text>
                   {p.variantes && <Text style={s.nota}>Opciones: {p.variantes.join(', ')}</Text>}
                   <Text style={[s.stockInv, { color: p.stock === 0 ? C.rojo : C.texto }]}>
                     Stock: {p.stock}{p.stock === 0 ? ' (agotado)' : ''}
@@ -1048,7 +1340,7 @@ export default function App() {
     );
   };
 
-  // VISTA RESPONSABLE: VENTAS
+  // VISTA 11 (RESPONSABLE): VENTAS
   const vistaVentas = () => {
     const vendido = pedidos.reduce((a, p) => a + p.total, 0);
     return (
@@ -1085,17 +1377,7 @@ export default function App() {
     );
   };
 
-  // CAMPO DE FORMULARIO (para el formulario de producto)
-  const campo = (label, clave, placeholder, multiline = false) => (
-    <>
-      <Text style={s.label}>{label}</Text>
-      <TextInput style={[s.input, multiline && { height: 80, textAlignVertical: 'top' }]} multiline={multiline}
-        value={form[clave]} placeholder={placeholder}
-        onChangeText={(t) => setForm({ ...form, [clave]: t })} />
-    </>
-  );
-
-  // VISTA RESPONSABLE: FORMULARIO NUEVO / EDITAR PRODUCTO
+  // VISTA 12 (RESPONSABLE): FORMULARIO NUEVO / EDITAR PRODUCTO
   const vistaProducto = () => (
     <View style={{ flex: 1 }}>
       {encabezado(false)}
@@ -1132,33 +1414,37 @@ export default function App() {
     </View>
   );
 
-  // NAVEGACION ENTRE VISTAS
+
+
+  // NAVEGACIÓN (qué vista se muestra y la barra inferior)
+
+
+  // VISTAS disponibles (nombre de la vista → función que la dibuja)
   const vistas = {
-    catalogo: vistaCatalogo, detalle: vistaDetalle, carrito: vistaCarrito,
-    checkout: vistaCheckout, resumen: vistaResumen, favoritos: vistaFavoritos, historial: vistaHistorial,
+    catalogo: vistaCatalogo, detalle: vistaDetalle, comparar: vistaComparar,
+    favoritos: vistaFavoritos, carrito: vistaCarrito, checkout: vistaCheckout,
+    resumen: vistaResumen, historial: vistaHistorial,
     inventario: vistaInventario, ventas: vistaVentas, producto: vistaProducto,
-    comparar: vistaComparar,
   };
+
+  // BOTÓN ACTIVO de la barra inferior según la vista actual
   const activa = {
     detalle: origen === 'comparar' ? 'catalogo' : origen,
     checkout: 'carrito', resumen: 'carrito', comparar: 'catalogo',
   }[vista] || vista;
 
-  // BARRA DE NAVEGACION INFERIOR
+  // BARRA INFERIOR: botones del comprador y del responsable
   const navComprador = [['catalogo', '🏠', 'Catálogo'], ['favoritos', '💜', 'Favoritos'], ['carrito', '🛒', 'Carrito'], ['historial', '🧾', 'Historial']];
   const navResp = [['inventario', '📦', 'Inventario'], ['ventas', '🧾', 'Ventas'], ['producto', '➕', 'Producto']];
   const nav = esResp ? navResp : navComprador;
 
-  // PANTALLA DE CARGA 
-  if (!cargado) {
-    return (
-      <SafeAreaView style={s.raiz}>
-        <Text style={[s.vacioTxt, { marginTop: 80 }]}>Cargando...</Text>
-      </SafeAreaView>
-    );
-  }
 
-  // PANTALLA DE LOGIN 
+
+  // 5.8 PANTALLAS (lo que finalmente se dibuja)
+
+
+
+  // PANTALLA DE LOGIN (si no hay sesión iniciada)
   if (!usuario) {
     return (
       <SafeAreaView style={[s.raiz, { backgroundColor: C.blanco }]}>
@@ -1195,9 +1481,9 @@ export default function App() {
           <Pressable style={s.menuFondo} onPress={() => setMenuPerfil(false)} />
           <View style={s.menuCaja}>
             <Text style={s.menuTitulo}>Cambiar perfil</Text>
-            {[['comprador', '🛍️', 'Comprador'], ['responsable', '🏪', 'Responsable de la tienda']].map(([k, ic, t]) => (
+            {[['comprador', 'Comprador'], ['responsable', '🏪', 'Responsable de la tienda']].map(([k, ic, t]) => (
               <Pressable key={k} style={[s.menuItem, perfil === k && s.menuItemActivo]} onPress={() => cambiarPerfil(k)}>
-                <Text style={s.menuItemTxt}>{ic} {t}{perfil === k ? '' : ''}</Text>
+                <Text style={s.menuItemTxt}>{ic} {t}</Text>
               </Pressable>
             ))}
             <Pressable style={s.menuItem} onPress={cerrarSesion}>
@@ -1210,12 +1496,31 @@ export default function App() {
   );
 }
 
-// ESTILOS
+
+
+//ESTILOS DE LA APP WONDERBEAUTY SHOP
+
+
 const s = StyleSheet.create({
-  // Base
+
+  // BASE de la app
   raiz: { flex: 1, backgroundColor: C.blanco, paddingTop: StatusBar.currentHeight || 0 },
 
-  // Encabezado
+  // LOGIN
+  loginContenido: { flexGrow: 1, justifyContent: 'center', padding: 22 },
+  loginLogo: { width: 240, height: 200, resizeMode: 'contain', alignSelf: 'center', marginBottom: 8 },
+  loginCard: {
+    backgroundColor: C.blanco, borderRadius: 22, padding: 20,
+    elevation: 8, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 14, shadowOffset: { width: 0, height: 6 },
+    borderWidth: 1, borderColor: C.claro,
+  },
+  loginTitulo: { color: C.morado, fontSize: 26, fontFamily: 'Fredoka_700Bold', textAlign: 'center', marginBottom: 6 },
+  claveFila: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.blanco, borderRadius: 12, borderWidth: 1, borderColor: C.claro, paddingHorizontal: 12 },
+  claveInput: { flex: 1, paddingVertical: 8 },
+  olvidasteTxt: { color: C.morado, fontSize: 12, marginTop: 8, fontWeight: 'bold' },
+  infoTxt: { color: C.morado, fontSize: 13, marginTop: 12 },
+
+  // ENCABEZADO (barra superior)
   header: { backgroundColor: C.header, paddingHorizontal: 12, paddingTop: 20, paddingBottom: 8 },
   headerFila: { flexDirection: 'row', alignItems: 'center' },
   headerTitulo: { flex: 1, color: C.blanco, fontSize: 20, fontFamily: 'Fredoka_700Bold', marginLeft: 10 },
@@ -1223,28 +1528,28 @@ const s = StyleSheet.create({
   buscador: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: C.blanco, borderRadius: 14, marginHorizontal: 10, paddingHorizontal: 20, height: 35 },
   buscadorInput: { flex: 1, paddingVertical: 0, paddingHorizontal: 6, fontSize: 13 },
   iconoBtn: { marginRight: 8 },
-  badge: { position: 'absolute', top: -4, right: -6, backgroundColor: C.rojo, borderRadius: 9, minWidth: 18, height: 18, alignItems: 'center', justifyContent: 'center' },
-  badgeTxt: { color: C.blanco, fontSize: 11 },
   usuario: { width: 30, height: 30, borderRadius: 15, backgroundColor: C.claro, alignItems: 'center', justifyContent: 'center' },
   bienvenido: { alignSelf: 'center', marginTop: 10, color: C.blanco, fontSize: 30, fontFamily: 'Fredoka_700Bold', paddingHorizontal: 22, paddingVertical: 2,
     backgroundColor: C.header, textShadowColor: '#000', textShadowRadius: 2 },
 
-  // Barra de categorías
+  // CATÁLOGO: barra de categorías
   tabs: { flexDirection: 'row', backgroundColor: C.claro, paddingHorizontal: 5 },
   tab: { paddingVertical: 10, paddingHorizontal: 20 },
   tabActiva: { borderBottomWidth: 3, borderBottomColor: C.morado },
   tabTxt: { color: C.texto, fontSize: 13, fontFamily: 'Fredoka_700Bold' },
 
-  // Título y orden
+  // CATÁLOGO: título, carrito, orden y chips
   tituloFila: { paddingHorizontal: 20, paddingTop: 25 },
   titulo: { color: C.morado, fontSize: 30, fontFamily: 'Fredoka_700Bold' },
   carritoTitulo2: { position: 'absolute', right: 20, top: 12 },
+  badge: { position: 'absolute', top: -4, right: -6, backgroundColor: C.rojo, borderRadius: 9, minWidth: 18, height: 18, alignItems: 'center', justifyContent: 'center' },
+  badgeTxt: { color: C.blanco, fontSize: 11 },
   ordenFila: { flexDirection: 'row', flexWrap: 'wrap', marginVertical: 15 },
   chip: { borderWidth: 1, borderColor: C.morado, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 4, marginRight: 8 },
   chipActivo: { backgroundColor: C.morado },
   chipTxt: { color: C.morado, fontSize: 12, fontFamily: 'Fredoka_700Bold' },
 
-  // Tarjeta de producto
+  // CATÁLOGO: tarjeta de producto
   tarjeta: { width: '48%', backgroundColor: C.blanco, borderRadius: 18, padding: 10, marginBottom: 25, elevation: 6, shadowColor: '#000', shadowOpacity: 0.45, shadowRadius: 6 },
   tarjetaImg: { height: 100, borderRadius: 12, backgroundColor: C.claro, alignItems: 'center', justifyContent: 'center' },
   tarjetaNombre: { color: C.ciruela, fontSize: 12, marginTop: 6, minHeight: 32, fontFamily: 'Fredoka_700Bold' },
@@ -1254,14 +1559,31 @@ const s = StyleSheet.create({
   oferta: { position: 'absolute', top: 6, right: -4, zIndex: 2, backgroundColor: C.claro, borderWidth: 1, borderColor: C.ciruela, paddingHorizontal: 6, transform: [{ rotate: '12deg' }] },
   ofertaTxt: { fontSize: 10, color: C.ciruela },
 
-  // Botones generales
+  // BOTONES generales
   btnComprar: { backgroundColor: C.morado, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 6 },
   btn: { backgroundColor: C.morado, borderRadius: 18, paddingHorizontal: 22, paddingVertical: 10, marginTop: 12 },
   btnTxt: { color: C.blanco, fontWeight: 'bold', fontSize: 13 },
+  btnGrande: { position: 'absolute', bottom: 8, left: 16, right: 16, backgroundColor: C.morado, borderRadius: 24, paddingVertical: 14, alignItems: 'center' },
+  btnGrandeInline: { backgroundColor: C.morado, borderRadius: 24, paddingVertical: 14, alignItems: 'center', marginTop: 14 },
+  btnGrandeTxt: { color: C.blanco, fontWeight: 'bold', fontSize: 16 },
+  btnCupon: { backgroundColor: C.morado, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 10, marginLeft: 8 },
+  btnContinuar: { backgroundColor: C.morado, borderRadius: 16, paddingHorizontal: 18, paddingVertical: 8 },
+  btnContinuarTxt: { color: C.blanco, fontWeight: 'bold' },
+
+  // MENSAJE DE VACÍO
   vacio: { alignItems: 'center', justifyContent: 'center', padding: 30 },
   vacioTxt: { color: C.texto, fontSize: 16, textAlign: 'center', marginTop: 6 },
 
-  // Detalle
+  // COMPARADOR
+  compararTxt: { color: C.morado, fontSize: 11, fontWeight: 'bold', marginTop: 6, textAlign: 'center' },
+  compararBarra: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: C.claro, marginHorizontal: 14, marginBottom: 8, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 8 },
+  compararBarraTxt: { color: C.texto, fontSize: 15, fontWeight: 'bold' },
+  compFila: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.blanco, borderBottomWidth: 1, borderBottomColor: C.claro, paddingVertical: 10, paddingHorizontal: 8 },
+  compEtiqueta: { width: 90, color: C.gris, fontSize: 12 },
+  compCol: { flex: 1, alignItems: 'center', paddingHorizontal: 4 },
+  compValor: { color: C.ciruela, fontSize: 12, textAlign: 'center' },
+
+  // DETALLE DE PRODUCTO
   detalleBarra: { flexDirection: 'row', alignItems: 'center', padding: 14 },
   volver: { fontSize: 26, color: C.morado },
   detalleTitulo: { color: C.morado, fontSize: 18, fontWeight: 'bold', marginLeft: 14 },
@@ -1284,33 +1606,55 @@ const s = StyleSheet.create({
   mediosFila: { flexDirection: 'row', justifyContent: 'space-between' },
   medioCaja: { width: '48%', backgroundColor: C.blanco, borderRadius: 14, padding: 14, elevation: 3 },
   medioTxt: { fontSize: 11, color: C.texto, textAlign: 'center' },
-  btnGrande: { position: 'absolute', bottom: 8, left: 16, right: 16, backgroundColor: C.morado, borderRadius: 24, paddingVertical: 14, alignItems: 'center' },
-  btnGrandeInline: { backgroundColor: C.morado, borderRadius: 24, paddingVertical: 14, alignItems: 'center', marginTop: 14 },
-  btnGrandeTxt: { color: C.blanco, fontWeight: 'bold', fontSize: 16 },
 
-  // Carrito
-  headerCarrito: { backgroundColor: C.header, padding: 14 },
-  carritoTitulo: { color: C.blanco, fontSize: 22, fontWeight: 'bold', textShadowColor: '#000', textShadowRadius: 2 },
-  resumenFila: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 6 },
-  totalGrande: { color: C.blanco, fontSize: 28, fontWeight: 'bold' },
-  btnContinuar: { backgroundColor: C.morado, borderRadius: 16, paddingHorizontal: 18, paddingVertical: 8 },
-  btnContinuarTxt: { color: C.blanco, fontWeight: 'bold' },
-  lineaCarrito: { backgroundColor: C.blanco, borderRadius: 18, padding: 12, marginBottom: 12, elevation: 4 },
-  lineaFila: { flexDirection: 'row', alignItems: 'center' },
-  lineaImg: { width: 64, height: 64, borderRadius: 10, backgroundColor: C.claro, alignItems: 'center', justifyContent: 'center' },
+  // DETALLE: reseñas
+  resenaCaja: { backgroundColor: C.blanco, borderRadius: 16, padding: 14, marginTop: 10, elevation: 3 },
+  promedioTxt: { color: C.morado, fontSize: 22, fontWeight: 'bold', marginTop: 4 },
+
+  // DETALLE: preguntas y productos relacionados
+  preguntaCaja: { borderTopWidth: 1, borderTopColor: C.claro, paddingTop: 8, marginTop: 8 },
+  respuestaTxt: { color: C.morado, fontSize: 13, marginTop: 4 },
+  relCard: { width: 130, backgroundColor: C.blanco, borderRadius: 14, padding: 8, marginRight: 10, marginBottom: 6, elevation: 3 },
+  relImg: { height: 60, borderRadius: 10, backgroundColor: C.claro, alignItems: 'center', justifyContent: 'center' },
+  relNombre: { color: C.ciruela, fontSize: 11, marginTop: 4, minHeight: 28, fontFamily: 'Fredoka_700Bold' },
+  relPrecio: { color: C.morado, fontSize: 11, fontWeight: 'bold' },
+
+  // CARRITO
+  carritoHeader: { backgroundColor: C.header, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 18, paddingBottom: 18, borderBottomLeftRadius: 24, borderBottomRightRadius: 24 },
+  carritoVolver: { fontSize: 24, color: C.blanco },
+  carritoHeaderTxt: { flex: 1, color: C.blanco, fontSize: 24, fontFamily: 'Fredoka_700Bold', marginLeft: 12 },
+  carritoCuenta: { color: C.blanco, fontSize: 13, backgroundColor: C.morado, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 3, overflow: 'hidden' },
+  carritoVacio: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 30 },
+  carritoVacioTitulo: { color: C.morado, fontSize: 22, fontFamily: 'Fredoka_700Bold', marginTop: 10 },
+  envioCard: { backgroundColor: C.blanco, borderRadius: 16, padding: 12, marginBottom: 12, elevation: 2 },
+  envioMsg: { color: C.texto, fontSize: 13, fontWeight: 'bold', marginBottom: 8 },
+  envioFondo: { height: 8, borderRadius: 4, backgroundColor: C.claro, overflow: 'hidden' },
+  envioRelleno: { height: 8, borderRadius: 4 },
+  carritoItem: { flexDirection: 'row', backgroundColor: C.blanco, borderRadius: 18, padding: 12, marginBottom: 12, elevation: 3 },
+  carritoImg: { width: 76, height: 76, borderRadius: 14, backgroundColor: C.claro, alignItems: 'center', justifyContent: 'center' },
+  carritoVar: { color: C.gris, fontSize: 12, marginTop: 2 },
+  carritoUnit: { color: C.ciruela, fontSize: 12, marginTop: 2 },
+  carritoDerecha: { alignItems: 'flex-end', justifyContent: 'space-between' },
+  carritoSub: { color: C.morado, fontSize: 14, fontWeight: 'bold' },
+  barraTotal: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: C.blanco, paddingHorizontal: 16, paddingVertical: 12, borderTopLeftRadius: 22, borderTopRightRadius: 22, elevation: 12, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 8 },
+  barraTotalLbl: { color: C.gris, fontSize: 12 },
+  barraTotalVal: { color: C.morado, fontSize: 22, fontWeight: 'bold' },
   lineaNombre: { color: C.ciruela, fontSize: 13, fontWeight: 'bold' },
   lineaPrecio: { color: C.morado, fontSize: 20, fontWeight: 'bold' },
+  lineaImg: { width: 64, height: 64, borderRadius: 10, backgroundColor: C.claro, alignItems: 'center', justifyContent: 'center' },
   cantFila: { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
   cantBtn: { width: 26, height: 26, borderRadius: 13, backgroundColor: C.claro, alignItems: 'center', justifyContent: 'center' },
   cantBtnTxt: { color: C.morado, fontSize: 18, fontWeight: 'bold' },
   cantCaja: { borderWidth: 1, borderColor: C.ciruela, backgroundColor: C.claro, paddingHorizontal: 12, marginHorizontal: 6 },
   cantTxt: { color: C.ciruela, fontSize: 12 },
   eliminar: { color: C.rojo, fontSize: 12, marginTop: 4 },
-  envioFila: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
-  envioTxt: { fontSize: 11, color: C.ciruela },
-  envioBarra: { flex: 1, height: 3, borderRadius: 2, marginHorizontal: 8 },
 
-  // Resumen y formularios
+  // CUPÓN
+  cuponFila: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 },
+  cuponOk: { color: '#2E9E47', fontWeight: 'bold', fontSize: 13, flex: 1 },
+  descuentoTxt: { color: '#2E9E47', fontSize: 14, fontWeight: 'bold', marginBottom: 3 },
+
+  // RESUMEN Y FORMULARIOS (checkout, resumen y textos generales)
   resumenCaja: { backgroundColor: C.blanco, borderRadius: 16, padding: 14, marginTop: 8, elevation: 3 },
   resumenFilaTxt: { color: C.ciruela, fontSize: 14, marginBottom: 3 },
   resumenTotal: { color: C.morado, fontSize: 22, fontWeight: 'bold', marginTop: 4 },
@@ -1318,60 +1662,43 @@ const s = StyleSheet.create({
   label: { color: C.ciruela, marginTop: 10, marginBottom: 3, fontSize: 13 },
   input: { backgroundColor: C.blanco, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: C.claro },
   link: { color: C.morado, textAlign: 'center', marginTop: 14, fontWeight: 'bold' },
-  pedidoCaja: { backgroundColor: C.blanco, borderRadius: 14, padding: 14, marginTop: 10, elevation: 2 },
+  errorTxt: { color: C.rojo, fontSize: 14, fontWeight: 'bold', marginTop: 12 },
 
-  // Aviso emergente y barra inferior
+  // HISTORIAL DE PEDIDOS
+  pedidoCard: { backgroundColor: C.blanco, borderRadius: 18, padding: 14, marginBottom: 12, elevation: 3 },
+  pedidoTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  pedidoCodigo: { color: C.morado, fontSize: 18, fontFamily: 'Fredoka_700Bold' },
+  pedidoBadge: { backgroundColor: '#E3F6E4', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
+  pedidoBadgeTxt: { color: '#2E9E47', fontSize: 12, fontWeight: 'bold' },
+  pedidoLinea: { height: 1, backgroundColor: C.claro, marginVertical: 10 },
+  pedidoItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  pedidoItemNombre: { flex: 1, color: C.ciruela, fontSize: 13, paddingRight: 8 },
+  pedidoItemPrecio: { color: C.texto, fontSize: 13, fontWeight: 'bold' },
+  pedidoTotalFila: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 },
+  pedidoTotalLbl: { color: C.texto, fontSize: 15, fontWeight: 'bold' },
+  pedidoTotalVal: { color: C.morado, fontSize: 20, fontWeight: 'bold' },
+
+  // RESPONSABLE DE LA TIENDA (inventario, ventas y formulario)
+  invFila: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.blanco, borderRadius: 14, padding: 12, marginBottom: 10, elevation: 2 },
+  stockInv: { fontWeight: 'bold', fontSize: 14, marginTop: 2 },
+  btnEditar: { backgroundColor: C.morado, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 8 },
+  pedidoCaja: { backgroundColor: C.blanco, borderRadius: 14, padding: 14, marginTop: 10, elevation: 2 },
+  catFila: { flexDirection: 'row', flexWrap: 'wrap' },
+
+  // AVISO EMERGENTE
   toast: { position: 'absolute', bottom: 78, alignSelf: 'center', backgroundColor: C.ciruela, borderRadius: 18, paddingHorizontal: 18, paddingVertical: 9 },
   toastTxt: { color: C.blanco, fontSize: 13 },
+
+  // BARRA DE NAVEGACIÓN INFERIOR
   nav: { flexDirection: 'row', backgroundColor: C.blanco, borderTopWidth: 1, borderTopColor: C.claro, paddingVertical: 6 },
   navItem: { flex: 1, alignItems: 'center' },
   navTxt: { fontSize: 11, color: C.gris },
 
-  // Reseñas
-  resenaCaja: { backgroundColor: C.blanco, borderRadius: 16, padding: 14, marginTop: 10, elevation: 3 },
-  promedioTxt: { color: C.morado, fontSize: 22, fontWeight: 'bold', marginTop: 4 },
-
-  // Cupón promocional
-  cuponFila: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 },
-  btnCupon: { backgroundColor: C.morado, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 10, marginLeft: 8 },
-  cuponOk: { color: '#2E9E47', fontWeight: 'bold', fontSize: 13, flex: 1 },
-  descuentoTxt: { color: '#2E9E47', fontSize: 14, fontWeight: 'bold', marginBottom: 3 },
-
-  // Menú de perfil
+  // MENÚ DE PERFIL
   menuFondo: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, zIndex: 40 },
   menuCaja: { position: 'absolute', top: (StatusBar.currentHeight || 0) + 66, right: 10, zIndex: 50, elevation: 10, backgroundColor: C.blanco, borderRadius: 14, paddingVertical: 6, minWidth: 240, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 8 },
   menuTitulo: { color: C.gris, fontSize: 12, paddingHorizontal: 14, paddingVertical: 6 },
   menuItem: { paddingHorizontal: 14, paddingVertical: 12 },
   menuItemActivo: { backgroundColor: C.claro },
   menuItemTxt: { color: C.texto, fontSize: 15 },
-
-  // Responsable de la tienda
-  invFila: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.blanco, borderRadius: 14, padding: 12, marginBottom: 10, elevation: 2 },
-  stockInv: { fontWeight: 'bold', fontSize: 14, marginTop: 2 },
-  btnEditar: { backgroundColor: C.morado, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 8 },
-  catFila: { flexDirection: 'row', flexWrap: 'wrap' },
-  errorTxt: { color: C.rojo, fontSize: 14, fontWeight: 'bold', marginTop: 12 },
-
-  // Comparador
-  compararTxt: { color: C.morado, fontSize: 11, fontWeight: 'bold', marginTop: 6, textAlign: 'center' },
-  compararBarra: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: C.claro, marginHorizontal: 14, marginBottom: 8, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 8 },
-  compararBarraTxt: { color: C.texto, fontSize: 15, fontWeight: 'bold' },
-  compFila: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.blanco, borderBottomWidth: 1, borderBottomColor: C.claro, paddingVertical: 10, paddingHorizontal: 8 },
-  compEtiqueta: { width: 90, color: C.gris, fontSize: 12 },
-  compCol: { flex: 1, alignItems: 'center', paddingHorizontal: 4 },
-  compValor: { color: C.ciruela, fontSize: 13, textAlign: 'center' },
-
-  // Login
-  loginContenido: { flexGrow: 1, justifyContent: 'center', padding: 22 },
-  loginLogo: { width: 240, height: 200, resizeMode: 'contain', alignSelf: 'center', marginBottom: 8 },
-  loginCard: {
-    backgroundColor: C.blanco, borderRadius: 22, padding: 20,
-    elevation: 8, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 14, shadowOffset: { width: 0, height: 6 },
-    borderWidth: 1, borderColor: C.claro,
-  },
-  loginTitulo: { color: C.morado, fontSize: 26, fontFamily: 'Fredoka_700Bold', textAlign: 'center', marginBottom: 6 },
-  claveFila: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.blanco, borderRadius: 12, borderWidth: 1, borderColor: C.claro, paddingHorizontal: 12 },
-  claveInput: { flex: 1, paddingVertical: 8 },
-  olvidasteTxt: { color: C.morado, fontSize: 12, marginTop: 8, fontWeight: 'bold' },
-  infoTxt: { color: C.morado, fontSize: 13, marginTop: 12 },
 });
