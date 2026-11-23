@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View, Text, TextInput, FlatList, Pressable, ScrollView,
-  StyleSheet, SafeAreaView, StatusBar, Image,
-} from 'react-native';
+import { View, Text, TextInput, FlatList, Pressable, ScrollView, StyleSheet, SafeAreaView, StatusBar, Image, } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFonts, Fredoka_700Bold } from '@expo-google-fonts/fredoka';
 
 const CATEGORIAS = ['Maquillaje', 'Accesorios', 'Perfumes', 'Cuidados Piel'];
 
@@ -32,10 +30,10 @@ const PRODUCTOS_INICIALES = [
 const ENVIO = 8000;
 const ENVIO_GRATIS_DESDE = 150000;
 
-// HU20: clave donde se guardan el carrito y los favoritos
+
 const CLAVE_GUARDADO = 'wonderbeauty_datos';
 
-// HU17: cupón promocional de prueba
+
 const CUPON_CODIGO = 'BIENVENIDO10';
 const CUPON_PORCENTAJE = 0.1;
 
@@ -52,10 +50,10 @@ const FORM_VACIO = { nombre: '', categoria: CATEGORIAS[0], precio: '', stock: ''
 const DATOS_VACIOS = { nombre: '', telefono: '', municipio: '', direccion: '' };
 const NOMBRES_CAMPOS = { nombre: 'Nombre completo', telefono: 'Teléfono', municipio: 'Municipio', direccion: 'Dirección' };
 
-// true si el texto es un número entero mayor o igual a "min"
+
 const esEntero = (texto, min) => texto.trim() !== '' && Number.isInteger(Number(texto)) && Number(texto) >= min;
 
-// HU19: promedio de valoraciones y estrellas
+
 const promedioDe = (lista) => (lista.length === 0 ? 0 : lista.reduce((a, n) => a + n, 0) / lista.length);
 const estrellas = (n) => '★'.repeat(n) + '☆'.repeat(5 - n);
 
@@ -76,6 +74,7 @@ const Resumen = ({ subtotal, descuento = 0, envio, total }) => (
 );
 
 export default function App() {
+  const [fontsLoaded] = useFonts({ Fredoka_700Bold,  });
   const [productos, setProductos] = useState(PRODUCTOS_INICIALES);
   const [vista, setVista] = useState('catalogo');
   const [origen, setOrigen] = useState('catalogo');
@@ -89,30 +88,30 @@ export default function App() {
   const [datos, setDatos] = useState(DATOS_VACIOS);
   const [aviso, setAviso] = useState('');
 
-  // HU17: cupón promocional
+
   const [cupon, setCupon] = useState('');
   const [cuponAplicado, setCuponAplicado] = useState(false);
   const [errorCupon, setErrorCupon] = useState('');
 
-  // HU19: reseñas ficticias { 'PROD-001': [5, 4, 3] }
+
   const [resenas, setResenas] = useState({});
   const [valorResena, setValorResena] = useState('');
   const [errorResena, setErrorResena] = useState('');
 
-  // HU20: indica si ya se leyeron los datos guardados
+  
   const [cargado, setCargado] = useState(false);
 
-  // Perfiles: 'comprador' | 'responsable'
+
   const [perfil, setPerfil] = useState('comprador');
   const [menuPerfil, setMenuPerfil] = useState(false);
   const esResp = perfil === 'responsable';
 
-  // Formulario del panel del responsable (HU18)
+
   const [form, setForm] = useState(FORM_VACIO);
   const [editId, setEditId] = useState(null);
   const [errorForm, setErrorForm] = useState('');
 
-  // HU20: al abrir la app se recuperan el carrito y los favoritos
+
   useEffect(() => {
     const cargar = async () => {
       try {
@@ -120,7 +119,7 @@ export default function App() {
         if (texto) {
           const guardado = JSON.parse(texto);
 
-          // CA02: se revisa cada producto del carrito (existe, cantidad válida, sin pasar el stock)
+          
           const carritoOk = [];
           (Array.isArray(guardado.carrito) ? guardado.carrito : []).forEach((l) => {
             const prod = l && PRODUCTOS_INICIALES.find((p) => p.id === l.id);
@@ -129,7 +128,7 @@ export default function App() {
             if (cant >= 1) carritoOk.push({ id: prod.id, cant });
           });
 
-          // Solo se aceptan favoritos que existan y sin repetir
+          
           const favOk = (Array.isArray(guardado.favoritos) ? guardado.favoritos : [])
             .filter((id, i, lista) => PRODUCTOS_INICIALES.some((p) => p.id === id) && lista.indexOf(id) === i);
 
@@ -137,14 +136,14 @@ export default function App() {
           setFavoritos(favOk);
         }
       } catch (e) {
-        // CA02 y CA03: si no hay datos o están dañados, se usa el estado inicial
+      
       }
       setCargado(true);
     };
     cargar();
   }, []);
 
-  // HU20: cada vez que cambia el carrito o los favoritos se guardan (solo después de cargar)
+
   useEffect(() => {
     if (!cargado) return;
     AsyncStorage.setItem(CLAVE_GUARDADO, JSON.stringify({ carrito, favoritos })).catch(() => {});
@@ -190,7 +189,7 @@ export default function App() {
     if (!l) return;
     const nueva = l.cant + delta;
     if (nueva < 1) return quitar(id);
-    // Solo se valida el stock al AUMENTAR; disminuir siempre se permite
+
     if (delta > 0 && nueva > productos.find((x) => x.id === id).stock) return avisar('Stock insuficiente');
     setCarrito((prev) => prev.map((x) => (x.id === id ? { ...x, cant: nueva } : x)));
   };
@@ -201,7 +200,7 @@ export default function App() {
     avisar(esFav ? 'Quitado de favoritos' : 'Guardado en favoritos ♥');
   };
 
-  // HU19: guardar una valoración (entero de 1 a 5)
+
   const guardarResena = (id) => {
     const n = Number(valorResena);
     if (!esEntero(valorResena, 1) || n > 5) {
@@ -213,7 +212,7 @@ export default function App() {
     avisar('Reseña guardada ✓');
   };
 
-  // HU17: aplicar o quitar el cupón
+
   const aplicarCupon = () => {
     const codigo = cupon.trim().toUpperCase();
     if (carrito.length === 0) return setErrorCupon('Agrega productos al carrito antes de aplicar un cupón.');
@@ -240,7 +239,6 @@ export default function App() {
   };
 
 
-  // HU12 CA02 y CA03: valida los datos y pasa a revisar el resumen
   const continuar = () => {
     if (carrito.length === 0) return avisar('Tu carrito está vacío');
     const faltante = Object.keys(datos).find((k) => datos[k].trim() === '');
@@ -248,7 +246,7 @@ export default function App() {
     setVista('resumen');
   };
 
-  // SOLO PARA PRUEBA (borrar después)
+  
   const simularStockBajo = () => {
     if (carrito.length === 0) return;
     const id = carrito[0].id;
@@ -263,7 +261,6 @@ export default function App() {
     const faltante = Object.keys(datos).find((k) => datos[k].trim() === '');
     if (faltante) return avisar('Completa el campo: ' + NOMBRES_CAMPOS[faltante]);
 
-    // HU13 CA02: si algún artículo no tiene stock suficiente, se cancela todo
     const sinStock = lineas.find((l) => l.cant > l.p.stock);
     if (sinStock) return avisar('Sin stock suficiente de: ' + sinStock.p.nombre);
 
@@ -288,7 +285,7 @@ export default function App() {
     avisar('Pedido ' + pedido.codigo + ' confirmado (simulación, sin cobro real)');
   };
 
-  // ---------- PERFIL RESPONSABLE DE LA TIENDA ----------
+  //  PERFIL RESPONSABLE DE LA TIENDA
   const enCarrito = (id) => (carrito.find((l) => l.id === id) || { cant: 0 }).cant;
 
   const cambiarPerfil = (nuevo) => {
@@ -319,7 +316,6 @@ export default function App() {
     setVista('producto');
   };
 
-  // HU18: crear o editar producto con validaciones
   const guardarProducto = () => {
     const nombre = form.nombre.trim();
     const descripcion = form.descripcion.trim();
@@ -332,13 +328,11 @@ export default function App() {
     const producto = { nombre, categoria: form.categoria, precio: Number(form.precio), stock: Number(form.stock), descripcion };
 
     if (editId) {
-      // CA02: se modifica el mismo producto, sin duplicarlo
       setProductos(productos.map((p) => (p.id === editId
         ? { ...p, ...producto, icono: form.icono.trim() || p.icono }
         : p)));
       avisar('Producto ' + editId + ' actualizado ✓');
     } else {
-      // CA01: id único consecutivo
       const maxN = productos.reduce((m, p) => Math.max(m, parseInt(p.id.replace('PROD-', ''), 10) || 0), 0);
       const id = 'PROD-' + String(maxN + 1).padStart(3, '0');
       setProductos([...productos, { id, ...producto, vendidos: 0, icono: form.icono.trim() || '🛍️' }]);
@@ -587,7 +581,7 @@ export default function App() {
     </View>
   );
 
-  // HU12 CA03: revisar el resumen antes de confirmar
+  // resumen antes de confirmar
   const vistaResumen = () => (
     <View style={{ flex: 1 }}>
       {encabezado(false)}
@@ -657,9 +651,9 @@ export default function App() {
   );
 
 
-  // ---------- VISTAS DEL RESPONSABLE DE LA TIENDA ----------
+  // VISTAS DEL RESPONSABLE DE LA TIENDA 
 
-  // HU14: inventario que refleja las existencias tras cada pedido confirmado
+ 
   const vistaInventario = () => {
     const unidades = productos.reduce((a, p) => a + p.stock, 0);
     const agotados = productos.filter((p) => p.stock === 0).length;
@@ -706,7 +700,7 @@ export default function App() {
     );
   };
 
-  // Ventas: pedidos confirmados por el comprador
+
   const vistaVentas = () => {
     const vendido = pedidos.reduce((a, p) => a + p.total, 0);
     return (
@@ -743,8 +737,7 @@ export default function App() {
     );
   };
 
-  // HU18: panel de vendedor (crear y editar productos)
-  // Un campo de texto del formulario del producto
+
   const campo = (label, clave, placeholder, multiline = false) => (
     <>
       <Text style={s.label}>{label}</Text>
@@ -846,29 +839,30 @@ const s = StyleSheet.create({
   raiz: { flex: 1, backgroundColor: C.fondo, paddingTop: StatusBar.currentHeight || 0 },
   header: { backgroundColor: C.header, paddingHorizontal: 12, paddingTop: 20, paddingBottom: 8 },
   headerFila: { flexDirection: 'row', alignItems: 'center' },
-  headerTitulo: { flex: 1, color: C.blanco, fontSize: 20, fontWeight: 'bold', marginLeft: 10 },
-  logoImg: { width: 90, height: 90, resizeMode: 'contain', marginVertical: -20, marginLeft: -8, marginRight: -12 },
+  headerTitulo: { flex: 1, color: C.blanco, fontSize: 20, fontFamily: 'Fredoka_700Bold', marginLeft: 10 },
+  logoImg: { width: 100, height: 110, resizeMode: 'contain', marginVertical: -5, marginLeft: 0, marginRight: 0 },
   buscador: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: C.blanco, borderRadius: 14, marginHorizontal: 10, paddingHorizontal: 8, height: 34 },
   buscadorInput: { flex: 1, paddingVertical: 0, paddingHorizontal: 6, fontSize: 13 },
   iconoBtn: { marginRight: 8 },
   badge: { position: 'absolute', top: -4, right: -6, backgroundColor: C.rojo, borderRadius: 9, minWidth: 18, height: 18, alignItems: 'center', justifyContent: 'center' },
-  badgeTxt: { color: C.blanco, fontSize: 11, fontWeight: 'bold' },
+  badgeTxt: { color: C.blanco, fontSize: 11,  },
   usuario: { width: 30, height: 30, borderRadius: 15, backgroundColor: C.claro, alignItems: 'center', justifyContent: 'center' },
-  bienvenido: { alignSelf: 'center', marginTop: 8, color: C.blanco, fontSize: 20, fontWeight: 'bold', borderWidth: 2, borderColor: '#7C4DFF', paddingHorizontal: 22, paddingVertical: 2, backgroundColor: C.header, textShadowColor: '#000', textShadowRadius: 2 },
+  bienvenido: { alignSelf: 'center', marginTop: 8, color: C.blanco, fontSize: 23, fontFamily: 'Fredoka_700Bold', paddingHorizontal: 22, paddingVertical: 2,
+  backgroundColor: C.header, textShadowColor: '#000', textShadowRadius: 2 },
   tabs: { flexDirection: 'row', backgroundColor: C.claro, paddingHorizontal: 6 },
   tab: { paddingVertical: 8, paddingHorizontal: 8 },
   tabActiva: { borderBottomWidth: 3, borderBottomColor: C.morado },
-  tabTxt: { color: C.texto, fontSize: 12 },
-  tituloFila: { paddingHorizontal: 16, paddingTop: 10 },
-  titulo: { color: C.morado, fontSize: 30, fontWeight: 'bold' },
+  tabTxt: { color: C.texto, fontSize: 12, fontFamily: 'Fredoka_700Bold' },
+  tituloFila: { paddingHorizontal: 16, paddingTop: 10, },
+  titulo: { color: C.morado, fontSize: 30, fontFamily: 'Fredoka_700Bold' },
   ordenFila: { flexDirection: 'row', marginVertical: 8 },
   chip: { borderWidth: 1, borderColor: C.morado, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 4, marginRight: 8 },
   chipActivo: { backgroundColor: C.morado },
-  chipTxt: { color: C.morado, fontSize: 12 },
+  chipTxt: { color: C.morado, fontSize: 12, fontFamily: 'Fredoka_700Bold' },
   tarjeta: { width: '48%', backgroundColor: C.blanco, borderRadius: 18, padding: 10, marginBottom: 14, elevation: 4, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 6 },
   tarjetaImg: { height: 100, borderRadius: 12, backgroundColor: C.claro, alignItems: 'center', justifyContent: 'center' },
-  tarjetaNombre: { color: C.ciruela, fontSize: 12, marginTop: 6, minHeight: 32 },
-  tarjetaPrecio: { color: C.ciruela, fontSize: 12, fontWeight: 'bold' },
+  tarjetaNombre: { color: C.ciruela, fontSize: 12, marginTop: 6, minHeight: 32, fontFamily: 'Fredoka_700Bold' },
+  tarjetaPrecio: { color: C.ciruela, fontSize: 12, fontFamily: 'Fredoka_700Bold' },
   stockTxt: { fontSize: 11, marginBottom: 4 },
   tarjetaFila: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   oferta: { position: 'absolute', top: 6, right: -4, zIndex: 2, backgroundColor: C.claro, borderWidth: 1, borderColor: C.ciruela, paddingHorizontal: 6, transform: [{ rotate: '12deg' }] },
