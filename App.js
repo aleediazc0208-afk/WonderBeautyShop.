@@ -1,3 +1,4 @@
+// VERSION 1.0 WONDER BEAUTY SHOP
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, FlatList, Pressable, ScrollView, StyleSheet, SafeAreaView, StatusBar, Image, } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
