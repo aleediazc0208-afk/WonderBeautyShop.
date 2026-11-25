@@ -202,11 +202,17 @@ const claveLinea = (l) => l.id + '|' + l.variante;
 // costo y plazo de envío (null si no hay tarifa)
 const infoEnvio = (municipio, modalidad) => (TARIFAS_ENVIO[municipio] && TARIFAS_ENVIO[municipio][modalidad]) || null;
 
+// contador para ids de notificación únicos (CORREGIDO)
+let contadorNoti = 0;
+
 // nueva notificación (sin leer)
-const nuevaNoti = (tipo, titulo, texto, productoId = '') => ({
-  id: 'N-' + Date.now() + '-' + Math.floor(Math.random() * 100000),
-  tipo, titulo, texto, productoId, fecha: ahora(), leida: false,
-});
+const nuevaNoti = (tipo, titulo, texto, productoId = '') => {
+  contadorNoti += 1;
+  return {
+    id: 'N-' + Date.now() + '-' + contadorNoti + '-' + Math.floor(Math.random() * 100000),
+    tipo, titulo, texto, productoId, fecha: ahora(), leida: false,
+  };
+};
 
 
 // COMPONENTES PEQUEÑOS
@@ -232,11 +238,14 @@ const Resumen = ({ subtotal, descuento = 0, envio, total }) => (
 );
 
 // etiqueta de estado del pedido
-const EstadoBadge = ({ estado }) => (
-  <View style={[s.pedidoBadge, { backgroundColor: ESTADOS_COLOR[estado].fondo }]}>
-    <Text style={[s.pedidoBadgeTxt, { color: ESTADOS_COLOR[estado].texto }]}>{estado}</Text>
-  </View>
-);
+const EstadoBadge = ({ estado }) => {
+  const col = ESTADOS_COLOR[estado] || ESTADOS_COLOR.Confirmado;
+  return (
+    <View style={[s.pedidoBadge, { backgroundColor: col.fondo }]}>
+      <Text style={[s.pedidoBadgeTxt, { color: col.texto }]}>{estado}</Text>
+    </View>
+  );
+};
 
 // imagen del producto: el recuadro (estilo) tiene tamaño fijo y la imagen se ajusta adentro
 // (sin imagen muestra el emoji)
@@ -409,9 +418,15 @@ function AppInterna() {
           const alertasOk = (Array.isArray(guardado.alertas) ? guardado.alertas : [])
             .filter((id, i, lista) => PRODUCTOS_INICIALES.some((p) => p.id === id && p.stock === 0) && lista.indexOf(id) === i);
 
-          // notificaciones: solo las que tienen el formato correcto
+          // notificaciones: solo las que tienen el formato correcto, sin ids repetidos
+          const idsVistos = [];
           const notisOk = (Array.isArray(guardado.notificaciones) ? guardado.notificaciones : [])
             .filter((n) => n && typeof n.id === 'string' && typeof n.titulo === 'string' && typeof n.texto === 'string')
+            .filter((n) => {
+              if (idsVistos.includes(n.id)) return false;
+              idsVistos.push(n.id);
+              return true;
+            })
             .map((n) => ({
               id: n.id,
               tipo: NOTI_ICONO[n.tipo] ? n.tipo : 'pedido',
@@ -615,12 +630,19 @@ function AppInterna() {
   };
 
   // abrir una notificación (la marca como leída y, si es de un producto, abre su detalle)
+  // CORREGIDO: primero se marca como leída y la navegación se hace después, de forma segura
   const abrirNotificacion = (n) => {
-    if (!n) return;
+    if (!n || typeof n.id !== 'string') return;
     const idNoti = n.id;
     const idProducto = typeof n.productoId === 'string' ? n.productoId : '';
-    setNotificaciones((prev) => prev.map((x) => (x.id === idNoti ? { ...x, leida: true } : x)));
-    if (idProducto && productos.some((p) => p.id === idProducto)) abrirDetalle(idProducto, 'notificaciones');
+
+    // 1) marcar como leída (solo cambia esa notificación)
+    setNotificaciones((prev) => prev.map((x) => (x && x.id === idNoti ? { ...x, leida: true } : x)));
+
+    // 2) si pertenece a un producto que existe, abrir su detalle
+    if (idProducto !== '' && PRODUCTOS_INICIALES.some((p) => p.id === idProducto)) {
+      setTimeout(() => abrirDetalle(idProducto, 'notificaciones'), 0);
+    }
   };
 
   // marcar todas como leídas
@@ -1620,6 +1642,8 @@ function AppInterna() {
   // VISTA NOTIFICACIONES
   const vistaNotificaciones = () => {
     const alertasLista = productos.filter((p) => alertas.includes(p.id));
+    // CORREGIDO: solo se dibujan notificaciones válidas
+    const notisValidas = notificaciones.filter((n) => n && typeof n.id === 'string');
     return (
       <View style={{ flex: 1, backgroundColor: C.fondo }}>
 
@@ -1652,7 +1676,7 @@ function AppInterna() {
           </View>
 
           {/* acciones */}
-          {notificaciones.length > 0 && (
+          {notisValidas.length > 0 && (
             <View style={s.dirBotones}>
               <Pressable style={s.dirBtn} onPress={marcarTodasLeidas}><Text style={s.dirBtnTxt}>Marcar todas como leídas</Text></Pressable>
               <Pressable style={s.dirBtn} onPress={borrarNotificaciones}><Text style={s.dirBtnTxt}>Borrar todas</Text></Pressable>
@@ -1660,7 +1684,7 @@ function AppInterna() {
           )}
 
           {/* lista */}
-          {notificaciones.length === 0 ? (
+          {notisValidas.length === 0 ? (
             <View style={s.carritoVacio}>
               <Text style={s.carritoVacioTitulo}>No tienes notificaciones</Text>
               <Text style={s.nota}>Aquí verás avisos de pedidos, reposición, preguntas y soporte</Text>
@@ -1669,13 +1693,13 @@ function AppInterna() {
               </Pressable>
             </View>
           ) : (
-            notificaciones.map((n) => (
-              <Pressable key={n.id} style={[s.notiCard, !n.leida && s.notiNoLeida]} onPress={() => abrirNotificacion(n)}>
-                <Text style={s.notiIcono}>{NOTI_ICONO[n.tipo]}</Text>
+            notisValidas.map((n, idx) => (
+              <Pressable key={n.id + '-' + idx} style={[s.notiCard, !n.leida ? s.notiNoLeida : null]} onPress={() => abrirNotificacion(n)}>
+                <Text style={s.notiIcono}>{NOTI_ICONO[n.tipo] || '🔔'}</Text>
                 <View style={{ flex: 1 }}>
-                  <Text style={s.notiTitulo}>{n.titulo}{!n.leida ? '  •' : ''}</Text>
-                  <Text style={s.resumenFilaTxt}>{n.texto}</Text>
-                  <Text style={s.nota}>{n.fecha}</Text>
+                  <Text style={s.notiTitulo}>{String(n.titulo) + (!n.leida ? '  •' : '')}</Text>
+                  <Text style={s.resumenFilaTxt}>{String(n.texto)}</Text>
+                  <Text style={s.nota}>{String(n.fecha || '')}</Text>
                 </View>
               </Pressable>
             ))
