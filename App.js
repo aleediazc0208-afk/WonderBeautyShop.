@@ -53,6 +53,40 @@ const PRODUCTOS_INICIALES = [
   { id: 'PROD-016', imagen: IMAGENES['PROD-016'], nombre: 'Protector solar facial', marca: 'Pure Skin', categoria: 'Cuidados Piel', precio: 52000, stock: 11, vendidos: 260, icono: '☀️', variantes: ['Con color', 'Sin color'], descripcion: 'Protector solar facial SPF 50 de textura ligera.' },
 ];
 
+// DATOS POR VARIANTE (lo que no se define se toma del producto base)
+// Para cambiar la imagen: guarda el archivo en assets/productos/ y descomenta la línea imagen
+const DATOS_VARIANTE = {
+  'PROD-001': {
+    'Rosado salmón': { color: '#F4A28C', descripcion: 'Brillo color rosado salmón con toque neutral para chicas.' },
+    'Nude':          { color: '#D9B49B', descripcion: 'Brillo nude suave, ideal para el día a día y looks naturales.' /*, imagen: require('./assets/productos/prod-001-nude.jpg') */ },
+    'Coral':         { color: '#FF7F6E', descripcion: 'Brillo coral vibrante con acabado matte para un look alegre.' /*, imagen: require('./assets/productos/prod-001-coral.jpg') */ },
+  },
+  'PROD-004': {
+    'Rojo intenso': { color: '#C0141C', descripcion: 'Labial en barra color rojo de larga duración.' },
+    'Vino':         { color: '#6D1A36', descripcion: 'Labial en barra color vino, profundo y elegante, de larga duración.' },
+    'Cereza':       { color: '#9E1B32', descripcion: 'Labial en barra color cereza, intenso y con mucho brillo.' },
+  },
+  'PROD-007': {
+    'Pastel': { color: '#F7C6D9', descripcion: 'Seis coletas de tela suaves en tonos pastel.' },
+    'Neón':   { color: '#C6FF3D', descripcion: 'Seis coletas de tela suaves en tonos neón para destacar.' },
+  },
+  'PROD-012': {
+    'Vainilla': { color: '#F3E2B3', icono: '🍦', descripcion: 'Perfume de 15 ml con aroma dulce a vainilla, ideal para el bolso.' },
+    'Floral':   { color: '#F2B6D0', icono: '🌸', descripcion: 'Perfume de 15 ml con aroma floral y delicado, ideal para el bolso.' },
+    'Cítrico':  { color: '#FFD966', icono: '🍋', descripcion: 'Perfume de 15 ml con aroma cítrico y fresco, ideal para el bolso.' },
+  },
+  'PROD-016': {
+    'Con color': { color: '#E8B796', descripcion: 'Protector solar facial SPF 50 con tinte que unifica el tono de la piel.' },
+    'Sin color': { color: '#FFFFFF', descripcion: 'Protector solar facial SPF 50 de textura ligera, sin color.' },
+  },
+};
+
+// producto con los datos de la variante elegida aplicados
+const conVariante = (p, variante) => {
+  const extra = (variante && DATOS_VARIANTE[p.id] && DATOS_VARIANTE[p.id][variante]) || {};
+  return { ...p, ...extra };
+};
+
 // MARCAS (sin repetir)
 const MARCAS = [...new Set(PRODUCTOS_INICIALES.map((p) => p.marca))];
 
@@ -215,8 +249,41 @@ const ImgProducto = ({ p, estilo, emoji = 40, modo = 'contain' }) => (
 );
 
 
+// PROTECCION CONTRA PANTALLA EN BLANCO: si algo falla al dibujar, muestra el error y un botón para reintentar
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: C.blanco }}>
+          <Text style={{ color: C.morado, fontSize: 20, fontWeight: 'bold', textAlign: 'center' }}>Ocurrió un error en la pantalla</Text>
+          <Text style={{ color: C.gris, fontSize: 12, textAlign: 'center', marginTop: 8 }}>{String(this.state.error && this.state.error.message)}</Text>
+          <Pressable style={s.btn} onPress={() => this.setState({ error: null })}>
+            <Text style={s.btnTxt}>Reintentar</Text>
+          </Pressable>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 // APP
 export default function App() {
+  return (
+    <ErrorBoundary>
+      <AppInterna />
+    </ErrorBoundary>
+  );
+}
+
+function AppInterna() {
   const [fontsLoaded] = useFonts({ Fredoka_700Bold });
 
 
@@ -549,8 +616,11 @@ export default function App() {
 
   // abrir una notificación (la marca como leída y, si es de un producto, abre su detalle)
   const abrirNotificacion = (n) => {
-    setNotificaciones((prev) => prev.map((x) => (x.id === n.id ? { ...x, leida: true } : x)));
-    if (n.productoId && productos.some((p) => p.id === n.productoId)) abrirDetalle(n.productoId, 'notificaciones');
+    if (!n) return;
+    const idNoti = n.id;
+    const idProducto = typeof n.productoId === 'string' ? n.productoId : '';
+    setNotificaciones((prev) => prev.map((x) => (x.id === idNoti ? { ...x, leida: true } : x)));
+    if (idProducto && productos.some((p) => p.id === idProducto)) abrirDetalle(idProducto, 'notificaciones');
   };
 
   // marcar todas como leídas
@@ -1091,9 +1161,14 @@ export default function App() {
         ) : (
           <Text style={s.headerTitulo}>{esResp ? 'Panel de la tienda' : 'WonderBeautyShop'}</Text>
         )}
+        {!esResp && (
+          <Pressable style={s.iconoBtn} onPress={() => { setMenuConfig(false); setMenuPerfil(false); setVista('notificaciones'); }}>
+            <Text style={{ fontSize: 24 }}>🔔</Text>
+            {noLeidas > 0 && <View style={s.badge}><Text style={s.badgeTxt}>{noLeidas > 99 ? '99+' : noLeidas}</Text></View>}
+          </Pressable>
+        )}
         <Pressable style={s.iconoBtn} onPress={() => { setMenuConfig(!menuConfig); setMenuPerfil(false); }}>
           <Text style={{ fontSize: 24 }}>⚙️</Text>
-          {!esResp && noLeidas > 0 && <View style={s.badge}><Text style={s.badgeTxt}>{noLeidas}</Text></View>}
         </Pressable>
         <Pressable style={s.usuario} onPress={() => { setMenuPerfil(!menuPerfil); setMenuConfig(false); }}>
           <Text style={{ fontSize: 16 }}>{esResp ? '🏪' : '👤'}</Text>
@@ -1262,7 +1337,16 @@ export default function App() {
 
   // VISTA DETALLE
   const vistaDetalle = () => {
-    const p = productos.find((x) => x.id === selId);
+    const base = productos.find((x) => x.id === selId);
+    if (!base) {
+      return (
+        <View style={{ flex: 1 }}>
+          {encabezado(false)}
+          <Vacio msg="No encontramos ese producto" btn="Volver al catálogo" onPress={() => setVista('catalogo')} />
+        </View>
+      );
+    }
+    const p = conVariante(base, varianteSel);
     const esFav = favoritos.includes(p.id);
     const esAlerta = alertas.includes(p.id);
     const lista = resenas[p.id] || [];
@@ -1295,7 +1379,7 @@ export default function App() {
             </View>
 
             {/* datos */}
-            <Text style={s.detalleNombre}>{p.nombre}</Text>
+            <Text style={s.detalleNombre}>{p.nombre}{varianteSel ? ' · ' + varianteSel : ''}</Text>
             <Text style={s.detalleDesc}>{p.descripcion}</Text>
             <Text style={s.detalleCat}>Categoría: {p.categoria} · Marca: {p.marca}</Text>
 
@@ -1304,12 +1388,16 @@ export default function App() {
               <View>
                 <Text style={s.label}>Elige una opción</Text>
                 <View style={s.catFila}>
-                  {p.variantes.map((v) => (
-                    <Pressable key={v} onPress={() => setVarianteSel(v)}
-                      style={[s.chip, varianteSel === v && s.chipActivo, { marginBottom: 6 }]}>
-                      <Text style={[s.chipTxt, varianteSel === v && { color: C.blanco }]}>{v}</Text>
-                    </Pressable>
-                  ))}
+                  {p.variantes.map((v) => {
+                    const col = DATOS_VARIANTE[p.id] && DATOS_VARIANTE[p.id][v] && DATOS_VARIANTE[p.id][v].color;
+                    return (
+                      <Pressable key={v} onPress={() => setVarianteSel(v)}
+                        style={[s.chip, varianteSel === v && s.chipActivo, { marginBottom: 6, flexDirection: 'row', alignItems: 'center' }]}>
+                        {col && <View style={[s.muestraColor, { backgroundColor: col }]} />}
+                        <Text style={[s.chipTxt, varianteSel === v && { color: C.blanco }]}>{v}</Text>
+                      </Pressable>
+                    );
+                  })}
                 </View>
               </View>
             )}
@@ -1743,7 +1831,7 @@ export default function App() {
               {/* productos */}
               {lineas.map((l) => (
                 <View key={claveLinea(l)} style={s.carritoItem}>
-                  <ImgProducto p={l.p} estilo={s.carritoImg} emoji={36} />
+                  <ImgProducto p={conVariante(l.p, l.variante)} estilo={s.carritoImg} emoji={36} />
 
                   <View style={{ flex: 1, marginLeft: 12 }}>
                     <Text style={s.lineaNombre} numberOfLines={2}>{l.p.nombre}</Text>
@@ -2396,7 +2484,7 @@ export default function App() {
       <StatusBar barStyle="dark-content" backgroundColor={C.header} />
 
       {/* vista actual */}
-      <View key={perfil + vista} style={{ flex: 1 }}>{(vistas[vista] || vistaCatalogo)()}</View>
+      <View key={perfil + vista + (vista === 'detalle' ? selId : '')} style={{ flex: 1 }}>{(vistas[vista] || vistaCatalogo)()}</View>
 
       {/* aviso */}
       {aviso !== '' && <View style={s.toast}><Text style={s.toastTxt}>{aviso}</Text></View>}
@@ -2511,6 +2599,7 @@ const s = StyleSheet.create({
   chip: { borderWidth: 1, borderColor: C.morado, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 4, marginRight: 8 },
   chipActivo: { backgroundColor: C.morado },
   chipTxt: { color: C.morado, fontSize: 12, fontFamily: 'Fredoka_700Bold' },
+  muestraColor: { width: 14, height: 14, borderRadius: 7, borderWidth: 1, borderColor: C.ciruela, marginRight: 6 },
 
   // IMAGENES DE PRODUCTO: el contenedor tiene tamaño fijo y la imagen se ajusta adentro
   imgContenedor: { overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: C.blanco },
