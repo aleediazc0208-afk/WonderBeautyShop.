@@ -6,6 +6,7 @@ Siendo una simulación académica: no hay cobros reales y todos los datos son fi
 Las dos versiones se encuentran en el repositorio y a continuación una pequeña explicacion de como ejecutar la version 1 y 2.
 
 Tambien al momento de visualiar la app te pedira iniciar sesión, puede colocar un correo ficticio y una contraseña de 6 digitos y le dejara entrar y navegar por WonderBeautyShop
+Se recomienda poner la pagina en ingles ya que al traducir en español algunas palabras se desacomodan.
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
